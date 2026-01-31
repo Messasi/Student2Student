@@ -1,0 +1,13 @@
+# Ignore database config
+config/database.php
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore uploaded files (will add this properly later)
+assets/uploads/
