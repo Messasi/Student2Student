@@ -1,13 +1,43 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-
-    background-color: #F4F7FA;
+/*Inter globally */
+body, html, * {
+    font-family: 'Inter', sans-serif !important;
 }
 
-html, body {
-    height: 100%;
+/* Base link style for navigation */
+.nav-link {
+    padding: 0.6rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #64748B;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.nav-link:hover {
+    color: #0052FF;
+    background-color: rgba(0, 82, 255, 0.05);
+}
+
+
+.page-index .nav-discovery,
+.page-create .nav-create,
+.page-faqs .nav-faqs {
+    color: #0052FF;
+    background-color: rgba(0, 82, 255, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(0, 82, 255, 0.1);
+}
+
+/*Hiding the scrollbar*/
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
