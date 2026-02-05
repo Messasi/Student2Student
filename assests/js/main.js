@@ -123,13 +123,21 @@ function formatPrice(amount) {
 }
 
 //helper function for smooth scrolling in settings 
-    document.querySelectorAll('.nav-link').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
+// Helper function for smooth scrolling in settings 
+document.querySelectorAll('.nav-link').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+
+        // Check if the link is an internal anchor (starts with #)
+        if (href.startsWith('#')) {
             e.preventDefault();
-            const targetId = this.getAttribute('href');
-            document.querySelector(targetId).scrollIntoView({
-                behavior: 'smooth'
-            });
+            
+            const targetElement = document.querySelector(href);
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth'
+                });
+            }
             
             // Update active state
             document.querySelectorAll('.nav-link').forEach(a => {
@@ -138,5 +146,7 @@ function formatPrice(amount) {
             });
             this.classList.add('bg-blue-50', 'text-[#0052FF]');
             this.classList.remove('text-[#64748B]');
-        });
+        } 
+      
     });
+});

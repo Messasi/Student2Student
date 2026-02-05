@@ -34,7 +34,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
             <ul class="hidden lg:flex items-center justify-center gap-2 m-0 p-0 list-none">
                 <li><a href="/student2student/index.php" class="nav-link nav-discovery">Discovery</a></li>
                 <li><a href="/student2student/listings/create.php" class="nav-link nav-create">Sell Tickets</a></li>
-                <li><a href="/student2student/pages/faqs.php" class="nav-link nav-faqs">FAQs</a></li>
+                <li><a href="/student2student/pages/faqs.php" class="nav-link nav-faqs">About</a></li>
             </ul>
 
             <div class="flex items-center justify-end gap-5">
