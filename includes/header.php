@@ -11,6 +11,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script src="https://unpkg.com/lucide@latest"></script>
+
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/student2student/assests/css/style.css">
@@ -49,10 +50,32 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
 
                 <div class="flex items-center gap-4">
                     <?php if (isset($_SESSION['user_id'])): ?>
-                        <div class="relative group">
-                            <button id="user-menu-btn" class="w-10 h-10 rounded-full bg-[#0052FF]/10 flex items-center justify-center text-[#0052FF] border border-[#0052FF]/20">
+                        <div class="relative inline-block text-left">
+                            <button id="user-menu-button" class="w-10 h-10 rounded-full bg-[#0052FF]/10 flex items-center justify-center text-[#0052FF] border border-[#0052FF]/20 hover:bg-[#0052FF]/20 transition-all focus:outline-none">
                                 <i data-lucide="user" class="w-5 h-5"></i>
                             </button>
+
+                            <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-2xl border border-[#E2E8F0] shadow-xl z-50 overflow-hidden transition-all">
+                                <div class="py-2">
+                                    <a href="/student2student/profile/profile.php" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#0A192F] hover:bg-[#F8FAFC] transition-colors no-underline">
+                                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#64748B]"></i>
+                                        Profile 
+                                    </a>
+                                    <a href="/student2student/dashboard/dashboard.php" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#0A192F] hover:bg-[#F8FAFC] transition-colors no-underline">
+                                        <i data-lucide="wallet" class="w-4 h-4 text-[#64748B]"></i>
+                                        Financial Hub
+                                    </a>
+                                    <a href="/student2student/dashboard/settings.php" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#0A192F] hover:bg-[#F8FAFC] transition-colors no-underline">
+                                        <i data-lucide="settings" class="w-4 h-4 text-[#64748B]"></i>
+                                        Settings
+                                    </a>
+                                    <hr class="border-[#E2E8F0] my-1">
+                                    <a href="/student2student/auth/logout.php" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors no-underline">
+                                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                                        Log Out
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     <?php else: ?>
                         <div class="hidden lg:flex items-center gap-4">
@@ -61,11 +84,12 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                         </div>
                     <?php endif; ?>
 
-                    <button id="open-menu-btn" class="lg:hidden text-[#0A192F] hover:text-[#0052FF] transition-colors cursor-pointer bg-transparent border-none p-1">
-                        <i data-lucide="menu" class="w-8 h-8"></i>
-                    </button>
+                        <button id="open-menu-btn"type="button" class="lg:hidden text-[#0A192F] hover:text-[#0052FF] transition-colors bg-transparent border-none p-1">
+                            <i data-lucide="menu" class="w-8 h-8"></i>
+                        </button>
                 </div>
             </div>
         </nav>
     </header>
     <main class="flex-grow w-full font-['Inter']">
+  

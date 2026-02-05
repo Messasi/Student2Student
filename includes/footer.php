@@ -47,12 +47,10 @@
             </nav>
 
             <div class="space-y-4">
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="/student2student/dashboard/index.php" class="block w-full text-center py-5 bg-[#F4F7FA] text-[#0A192F] rounded-2xl font-bold no-underline font-['Inter'] text-lg">My Dashboard</a>
-                <?php else: ?>
+                <?php if (!isset($_SESSION['user_id'])): ?>
                     <a href="/student2student/auth/login.php" class="block w-full text-center py-4 bg-[#F1F5F9] text-[#64748B] font-bold no-underline font-['Inter'] text-lg rounded-2xl">Login</a>
                     <a href="/student2student/auth/register.php" class="block w-full text-center py-5 bg-[#0052FF] text-white rounded-2xl font-bold no-underline font-['Inter'] text-lg shadow-xl shadow-blue-500/20">Create Account</a>
-                <?php endif; ?>
+                 <?php endif; ?>
             </div>
         </div>
     </div>

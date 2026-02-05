@@ -1,7 +1,4 @@
-/**
- * Student2Student - Main JavaScript File
- * Handles global interactions and UI logic
- */
+// Mobile sidbar and search toggle logic
 
 document.addEventListener('DOMContentLoaded', () => {
     // Selectors
@@ -10,6 +7,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('close-menu-btn');
     const searchToggle = document.getElementById('mobile-search-toggle');
     const searchBar = document.getElementById('mobile-search-bar');
+    const userMenuButton = document.getElementById('user-menu-button');
+    const userDropdown = document.getElementById('user-dropdown');
+
+  
+    console.log('userMenuButton:', userMenuButton);
+    console.log('userDropdown:', userDropdown);
 
     // Mobile Sidebar Logic
     if (openBtn && menu) {
@@ -38,12 +41,43 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // User Dropdown Menu Logic 
+    if (userMenuButton && userDropdown) {
+        console.log('Initializing user dropdown...');
+        
+        userMenuButton.addEventListener('click', function(e) {
+            console.log('User button clicked');
+            e.stopPropagation();
+            userDropdown.classList.toggle('hidden');
+            console.log('Dropdown hidden status:', userDropdown.classList.contains('hidden'));
+        });
+    } else {
+        console.log('User dropdown elements not found - user may not be logged in');
+    }
+
+    // Initialise Lucide icons if the library is loaded
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
     console.log('Student2Student marketplace loaded successfully');
 });
 
-/**
- * Form Validation and Utility Functions
- */
+// Close dropdown when clicking outside 
+document.addEventListener('click', function(e) {
+    const userDropdown = document.getElementById('user-dropdown');
+    const userMenuButton = document.getElementById('user-menu-button');
+    
+    if (userDropdown && userMenuButton) {
+        if (!userDropdown.contains(e.target) && !userMenuButton.contains(e.target)) {
+            userDropdown.classList.add('hidden');
+        }
+    }
+});
+
+
+//Validate form helper function
+
 function validateForm(formId) {
     const form = document.getElementById(formId);
     if (!form) return false;
@@ -62,6 +96,8 @@ function validateForm(formId) {
     return isValid;
 }
 
+
+// Helper functions for form validation and formatting
 function showFieldError(field, message) {
     clearFieldError(field);
     field.classList.add('border-red-500', 'border-2');
@@ -71,12 +107,14 @@ function showFieldError(field, message) {
     field.parentNode.appendChild(errorDiv);
 }
 
+// Helper function to clear field errors
 function clearFieldError(field) {
     field.classList.remove('border-red-500', 'border-2');
     const existingError = field.parentNode.querySelector('.field-error');
     if (existingError) existingError.remove();
 }
 
+// Helper function to format price values
 function formatPrice(amount) {
     return new Intl.NumberFormat('en-GB', {
         style: 'currency',
@@ -84,14 +122,21 @@ function formatPrice(amount) {
     }).format(amount);
 }
 
-function debounce(func, wait = 300) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+//helper function for smooth scrolling in settings 
+    document.querySelectorAll('.nav-link').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            document.querySelector(targetId).scrollIntoView({
+                behavior: 'smooth'
+            });
+            
+            // Update active state
+            document.querySelectorAll('.nav-link').forEach(a => {
+                a.classList.remove('bg-blue-50', 'text-[#0052FF]');
+                a.classList.add('text-[#64748B]');
+            });
+            this.classList.add('bg-blue-50', 'text-[#0052FF]');
+            this.classList.remove('text-[#64748B]');
+        });
+    });
