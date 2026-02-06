@@ -10,6 +10,7 @@ if (isset($_SESSION['user_id'])) {
 
 
 
+
 $errors = [];
 $login_input = ''; 
 

@@ -8,7 +8,7 @@ include '../includes/header.php';
 $user_id = $_SESSION['user_id'];
 
 // Fetch current user data
-$stmt = $conn->prepare("SELECT first_name, last_name, personal_email, email, username FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT first_name, last_name, personal_email, email, profile_picture, username FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -49,13 +49,25 @@ $stmt->close();
                     <h3 class="text-xl font-bold text-[#0A192F] mb-6">Profile Customisation</h3>
                     <form action="update_profile.php" method="POST" enctype="multipart/form-data" class="space-y-6">
                         <div class="flex items-center gap-6 mb-8">
-                            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300 relative overflow-hidden group">
-                                <i data-lucide="camera" class="w-8 h-8 text-gray-400 group-hover:opacity-0 transition-opacity"></i>
-                                <input type="file" name="profile_picture" class="absolute inset-0 opacity-0 cursor-pointer">
+                            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center border-2 border-[#E2E8F0] relative overflow-hidden group">
+                                <?php if (!empty($user['profile_picture'])): ?>
+                                    <img src="../uploads/profiles/<?php echo htmlspecialchars($user['profile_picture']); ?>" class="w-full h-full object-cover">
+                                <?php else: ?>
+                                    <div class="w-full h-full bg-[#0A192F] flex items-center justify-center">
+                                        <span class="text-3xl font-black text-white uppercase">
+                                            <?php echo substr($user['username'], 0, 1); ?>
+                                        </span>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                    <i data-lucide="camera" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <input type="file" name="profile_picture" class="absolute inset-0 opacity-0 cursor-pointer" onchange="this.form.submit()">
                             </div>
                             <div>
                                 <p class="text-sm font-bold text-[#0A192F]">Profile Picture</p>
-                                <p class="text-xs text-[#64748B]">JPG, GIF or PNG. Max size of 2MB.</p>
+                                <p class="text-xs text-[#64748B]">Click the circle to upload. Max 2MB.</p>
                             </div>
                         </div>
                         <div class="grid md:grid-cols-2 gap-6">

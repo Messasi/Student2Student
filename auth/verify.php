@@ -68,11 +68,11 @@ if (isset($_GET['token'])) {
                     
                     <h1 class="text-4xl font-black uppercase tracking-tighter mb-4">Email Verified</h1>
                     <p class="text-white/60 font-medium mb-10 tracking-tight leading-relaxed">
-                        Your university credentials have been confirmed. Your account is now active and ready for secure trading.
+                        Your university credentials have been confirmed. Your account is now active and ready.
                     </p>
                     
                     <a href="/student2student/auth/login.php" class="inline-block w-full bg-[#0052FF] text-white py-4 rounded-xl font-bold uppercase text-sm tracking-widest hover:bg-[#0041CC] transition-all shadow-lg shadow-blue-500/20">
-                        Access Dashboard
+                        Proceed to Login
                     </a>
 
                 <?php else: ?>

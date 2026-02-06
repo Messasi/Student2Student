@@ -6,7 +6,7 @@ include '../includes/header.php';
 $user_id = $_SESSION['user_id'];
 
 // 1. DYNAMIC DATA: Fetch User Profile from Database
-$stmt = $conn->prepare("SELECT  username, created_at FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT  username, profile_picture, created_at FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -58,13 +58,17 @@ $active_listings = [
             
             <div class="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
                 <div class="flex flex-col md:flex-row items-center gap-8">
-                    <div class="w-28 h-28 bg-white text-[#0A192F] rounded-full uppercase flex items-center justify-center text-4xl font-black shadow-[0_0_40px_rgba(255,255,255,0.1)] border-4 border-white/10">
-                        <?php echo substr($user['username'], 0, 1); ?>
+                    <div class="w-28 h-28 bg-white text-[#0A192F] rounded-full uppercase flex items-center justify-center text-4xl font-black shadow-[0_0_40px_rgba(255,255,255,0.1)] border-4 border-white/10 overflow-hidden">
+                        <?php if (!empty($user['profile_picture'])): ?>
+                            <img src="../uploads/profiles/<?php echo htmlspecialchars($user['profile_picture']); ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <?php echo substr($user['username'], 0, 1); ?>
+                        <?php endif; ?>
                     </div>
                     
                     <div class="text-center md:text-left">
                         <div class="flex flex-col md:flex-row md:items-center gap-3 mb-3">
-                            <h1 class="text-4xl lg:text-5xl font-black tracking-tighter uppercase">
+                            <h1 class="text-4xl lg:text-5xl font-black tracking-tighter ">
                                 <?php echo htmlspecialchars($user['username']); ?>
                             </h1>
                         </div>
