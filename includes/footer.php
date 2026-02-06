@@ -34,9 +34,7 @@
                 <i data-lucide="x" class="w-6 h-6"></i>
            </button>
 
-            <script>
-                lucide.createIcons();
-            </script>
+          
         </div>
 
         <div class="flex-grow flex flex-col justify-between px-8 py-12">
