@@ -53,38 +53,46 @@ if (isset($_GET['token'])) {
 }
 ?>
 
-<div class="mx-auto px-6 lg:px-[60px] py-12">
-    <div class="max-w-md mx-auto text-center">
-        
-        <?php if ($message_type === 'success'): ?>
-            <div class="bg-green-50 border border-green-200 rounded-2xl p-12 mb-8">
-                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#16a34a" stroke-width="2.5">
-                        <path d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <h1 class="text-2xl font-extrabold text-green-800 mb-3">Email Verified!</h1>
-                <p class="text-green-700 font-semibold mb-6"><?php echo htmlspecialchars($message); ?></p>
-                <a href="/student2student/auth/login.php" class="inline-block bg-[#0052FF] text-white px-8 py-3 rounded-xl text-base font-bold hover:bg-[#0041CC] transition-all no-underline">
-                    Go to Login
-                </a>
+<div class="bg-white min-h-screen flex items-center justify-center py-20">
+    <div class="max-w-xl w-full px-6">
+        <div class="bg-[#0A192F] rounded-[2rem] p-10 lg:p-16 text-white shadow-2xl relative overflow-hidden text-center">
+            
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-[#0052FF] rounded-full blur-[100px] opacity-20"></div>
+            <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-[#0052FF] rounded-full blur-[100px] opacity-10"></div>
+
+            <div class="relative z-10">
+                <?php if ($message_type === 'success'): ?>
+                    <div class="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-full border-2 border-white/20 mb-8 backdrop-blur-sm">
+                        <i data-lucide="shield-check" class="w-12 h-12 text-[#00FF85]"></i>
+                    </div>
+                    
+                    <h1 class="text-4xl font-black uppercase tracking-tighter mb-4">Email Verified</h1>
+                    <p class="text-white/60 font-medium mb-10 tracking-tight leading-relaxed">
+                        Your university credentials have been confirmed. Your account is now active and ready for secure trading.
+                    </p>
+                    
+                    <a href="/student2student/auth/login.php" class="inline-block w-full bg-[#0052FF] text-white py-4 rounded-xl font-bold uppercase text-sm tracking-widest hover:bg-[#0041CC] transition-all shadow-lg shadow-blue-500/20">
+                        Access Dashboard
+                    </a>
+
+                <?php else: ?>
+                    <div class="inline-flex items-center justify-center w-24 h-24 bg-white/10 rounded-full border-2 border-white/20 mb-8 backdrop-blur-sm">
+                        <i data-lucide="alert-circle" class="w-12 h-12 text-red-400"></i>
+                    </div>
+                    
+                    <h1 class="text-4xl font-black uppercase tracking-tighter mb-4">Verification Error</h1>
+                    <p class="text-white/60 font-medium mb-10 tracking-tight">
+                        <?php echo htmlspecialchars($message); ?>
+                    </p>
+                    
+                    <a href="/student2student/auth/register.php" class="inline-block w-full bg-white/10 border border-white/20 text-white py-4 rounded-xl font-bold uppercase text-sm tracking-widest hover:bg-white/20 transition-all">
+                        Restart Registration
+                    </a>
+                <?php endif; ?>
             </div>
-        <?php else: ?>
-            <div class="bg-red-50 border border-red-200 rounded-2xl p-12 mb-8">
-                <div class="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="#dc2626" stroke-width="2.5">
-                        <path d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </div>
-                <h1 class="text-2xl font-extrabold text-red-800 mb-3">Verification Failed</h1>
-                <p class="text-red-700 font-semibold mb-6"><?php echo htmlspecialchars($message); ?></p>
-                <a href="/student2student/auth/register.php" class="inline-block bg-[#0052FF] text-white px-8 py-3 rounded-xl text-base font-bold hover:bg-[#0041CC] transition-all no-underline">
-                    Register Again
-                </a>
-            </div>
-        <?php endif; ?>
-        
+        </div>
     </div>
 </div>
+<script>lucide.createIcons();</script>
 
 <?php include '../includes/footer.php'; ?>

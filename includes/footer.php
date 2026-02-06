@@ -15,7 +15,7 @@
                 <nav class="flex flex-wrap justify-center gap-x-8 gap-y-4">
                     <a href="/student2student/index.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">Discovery</a>
                     <a href="/student2student/listings/create.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">Sell Tickets</a>
-                    <a href="/student2student/pages/faqs.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">FAQs</a>
+                    <a href="/student2student/pages/about.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">About</a>
                 </nav>
 
                 <div class="text-[0.8rem] text-[#94A3B8] font-bold uppercase tracking-widest font-['Inter']">
@@ -43,7 +43,7 @@
             <nav class="flex flex-col space-y-8">
                 <a href="/student2student/index.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">Discovery</a>
                 <a href="/student2student/listings/create.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">Sell Tickets</a>
-                <a href="/student2student/pages/faqs.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">About</a>
+                <a href="/student2student/pages/about.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">About</a>
             </nav>
 
             <div class="space-y-4">

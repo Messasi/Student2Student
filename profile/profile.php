@@ -6,7 +6,7 @@ include '../includes/header.php';
 $user_id = $_SESSION['user_id'];
 
 // 1. DYNAMIC DATA: Fetch User Profile from Database
-$stmt = $conn->prepare("SELECT first_name, last_name, created_at FROM users WHERE id = ?");
+$stmt = $conn->prepare("SELECT  username, created_at FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -53,91 +53,84 @@ $active_listings = [
 <div class="bg-white min-h-screen">
     <div class="mx-auto px-6 lg:px-[60px] py-12">
         
-        <div class="bg-gradient-to-br from-[#0A192F] to-[#1E3A5F] rounded-3xl p-8 lg:p-12 mb-10 text-white shadow-xl">
-            <div class="flex flex-col md:flex-row items-center gap-8">
-                <div class="w-32 h-32 bg-white/10 rounded-full border-4 border-white/20 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="user" class="w-16 h-16 text-white/80"></i>
-                </div>
-                
-                <div class="text-center md:text-left">
-                    <div class="flex flex-col md:flex-row md:items-center gap-3 mb-2">
-                        <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight">
-                            <?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?>
-                        </h1>
-                        <div class="inline-flex items-center gap-1.5 bg-green-500/20 border border-green-500/30 px-2 py-1 rounded-full self-center md:self-auto">
-                            <i  class="h-4 text-green-400"></i>
-                            <span class="text-green-400 text-sm font-black  tracking-wider"><?php echo $sold_count; ?> Sold</span>
+        <div class="bg-[#0A192F] rounded-[1rem] p-8 lg:p-12 mb-12 text-white shadow-2xl relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-[#0052FF] rounded-full blur-[100px] opacity-20"></div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
+                <div class="flex flex-col md:flex-row items-center gap-8">
+                    <div class="w-28 h-28 bg-white text-[#0A192F] rounded-full uppercase flex items-center justify-center text-4xl font-black shadow-[0_0_40px_rgba(255,255,255,0.1)] border-4 border-white/10">
+                        <?php echo substr($user['username'], 0, 1); ?>
+                    </div>
+                    
+                    <div class="text-center md:text-left">
+                        <div class="flex flex-col md:flex-row md:items-center gap-3 mb-3">
+                            <h1 class="text-4xl lg:text-5xl font-black tracking-tighter uppercase">
+                                <?php echo htmlspecialchars($user['username']); ?>
+                            </h1>
+                        </div>
+                        <div class="flex flex-wrap items-center justify-center md:justify-start gap-6">
+                            <div class="flex items-center  text-white/50 font-bold text-xs uppercase tracking-widest">
+                                <i  class="h-4 text-[#0052FF]"></i>
+                                Member Since <?php echo date('M Y', strtotime($user['created_at'])); ?>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="flex items-center justify-center md:justify-start gap-2 text-white/60 font-medium">
-                        <i data-lucide="calendar" class="w-4 h-4"></i>
-                        <span>Member since <?php echo date('F Y', strtotime($user['created_at'])); ?></span>
+                <div class="flex gap-4">
+                    <div class="bg-white/5 border border-white/10 backdrop-blur-md px-8 py-5 rounded-2xl text-center min-w-[120px]">
+                        <p class="text-3xl font-black"><?php echo $sold_count; ?></p>
+                        <p class="text-medium font-bold text-white/40 uppercase mt-1">Sales</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <h2 class="text-3xl font-extrabold text-[#0A192F] tracking-tight flex items-center gap-2">
-                <i  class=" h-6 text-[#0052FF]"></i>
-                Active Listings
-            </h2>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+            <h2 class="text-3xl font-black text-[#0A192F] uppercase tracking-tighter">Active Listings</h2>
             
             <div class="flex items-center gap-3">
-                <select id="categoryFilter" class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0A192F] focus:outline-none focus:border-[#0052FF]">
+                <select id="categoryFilter" class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-xs font-black uppercase text-[#0A192F] focus:outline-none focus:border-[#0052FF]">
                     <option value="all">All Categories</option>
-                    <option value="social">Social Events</option>
+                    <option value="social">Social</option>
                     <option value="academic">Academic</option>
                 </select>
-
-                <select id="priceSort" class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm font-bold text-[#0A192F] focus:outline-none focus:border-[#0052FF]">
-                    <option value="newest">Newest First</option>
-                    <option value="low">Price: Low to High</option>
-                    <option value="high">Price: High to Low</option>
+                <select id="priceSort" class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-xs font-black uppercase text-[#0A192F] focus:outline-none focus:border-[#0052FF]">
+                    <option value="newest">Newest</option>
+                    <option value="low">Price: Low</option>
+                    <option value="high">Price: High</option>
                 </select>
             </div>
         </div>
 
-        <div id="listingsGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="listingsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <?php foreach ($active_listings as $listing): ?>
-                <div class="listing-card bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden hover:border-[#0052FF]/30 hover:shadow-lg transition-all group" 
+                <div class="listing-card bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden hover:border-[#0052FF]/30 transition-all hover:-translate-y-1 shadow-sm hover:shadow-xl" 
                      data-category="<?php echo $listing['category']; ?>" 
                      data-price="<?php echo $listing['selling_price']; ?>">
                     
-                    <div class="aspect-video bg-gradient-to-br from-[#F8FAFC] to-[#E2E8F0] flex items-center justify-center border-b border-[#E2E8F0] relative">
-                        <i data-lucide="ticket" class="w-12 h-12 text-[#CBD5E1]"></i>
-                        <span class="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-black uppercase text-[#0A192F] tracking-tighter shadow-sm">
+                    <div class="aspect-[4/3] bg-[#F8FAFC] flex items-center justify-center relative border-b border-[#F1F5F9]">
+                        <i data-lucide="ticket" class="w-10 h-10 text-[#CBD5E1]"></i>
+                        <span class="absolute top-3 left-3 bg-white px-2 py-1 rounded-md text-[9px] font-black uppercase text-[#0A192F] shadow-sm border border-[#E2E8F0]">
                             <?php echo htmlspecialchars($listing['category']); ?>
                         </span>
                     </div>
                     
-                    <div class="p-6">
-                        <h3 class="text-lg font-bold text-[#0A192F] mb-2 group-hover:text-[#0052FF] transition-colors">
+                    <div class="p-5">
+                        <h3 class="text-sm font-black text-[#0A192F] uppercase mb-4 h-10 line-clamp-2 leading-tight">
                             <?php echo htmlspecialchars($listing['event_name']); ?>
                         </h3>
                         
-                        <div class="space-y-2 mb-4">
-                            <div class="flex items-center gap-2 text-sm text-[#64748B] font-medium">
-                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                        <div class="space-y-1.5 mb-5">
+                            <div class="flex items-center gap-2 text-[10px] text-[#64748B] font-bold uppercase">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
                                 <?php echo date('d M Y', strtotime($listing['event_date'])); ?>
-                            </div>
-                            <div class="flex items-center gap-2 text-sm text-[#64748B] font-medium">
-                                <i data-lucide="map-pin" class="w-4 h-4"></i>
-                                <?php echo htmlspecialchars($listing['event_location']); ?>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between pt-4 border-t border-[#E2E8F0]">
-                            <div>
-                                <div class="text-2xl font-extrabold text-[#0A192F]">£<?php echo number_format($listing['selling_price'], 2); ?></div>
-                                <?php if ($listing['original_price'] > $listing['selling_price']): ?>
-                                    <div class="text-xs text-red-500 font-bold uppercase tracking-tighter">
-                                        Save £<?php echo number_format($listing['original_price'] - $listing['selling_price'], 2); ?>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                            <a href="#" class="bg-[#0052FF] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-[#0041CC] transition-all no-underline shadow-lg shadow-blue-500/10">
+                        <div class="flex items-center justify-between pt-4 border-t border-[#F1F5F9]">
+                            <div class="text-xl font-black text-[#0A192F]">£<?php echo number_format($listing['selling_price'], 2); ?></div>
+                            <a href="#" class="bg-[#0052FF] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase hover:bg-[#0041CC] transition-colors">
                                 Buy
                             </a>
                         </div>
