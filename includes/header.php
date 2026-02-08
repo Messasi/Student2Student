@@ -33,7 +33,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
 
             <ul class="hidden lg:flex items-center justify-center gap-2 m-0 p-0 list-none">
                 <li><a href="/student2student/index.php" class="nav-link nav-discovery">Discovery</a></li>
-                <li><a href="/student2student/listings/create.php" class="nav-link nav-create">Sell Tickets</a></li>
+                <li><a href="/student2student/listings/ticket_listing.php" class="nav-link nav-create">Sell Tickets</a></li>
                 <li><a href="/student2student/pages/about.php" class="nav-link nav-about">About</a></li>
             </ul>
 
