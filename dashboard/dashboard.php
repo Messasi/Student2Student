@@ -357,8 +357,6 @@ mysqli_stmt_close($stmt_purchases);
     </div>
 </div>
 
-<script>
-    lucide.createIcons();
-</script>
+
 
 <?php include '../includes/footer.php'; ?>

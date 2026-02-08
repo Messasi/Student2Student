@@ -146,7 +146,7 @@ $active_listings = [
 </div>
 
 <script>
-    lucide.createIcons();
+  
 
     const categoryFilter = document.getElementById('categoryFilter');
     const priceSort = document.getElementById('priceSort');

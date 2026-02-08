@@ -85,7 +85,7 @@ html {
             <div class="max-w-xl mb-12">
                 <div class="h-1 bg-[#0052FF] w-24 mr-auto mb-6"></div>
                 <p class="text-xl text-white font-bold leading-tight opacity-90">
-                    The student marketplace built on trust and safety. <br>
+                    The student marketplace hub for 2nd hand tickets. <br>
                     Buy and sell tickets with confidence.
                 </p>
             </div>

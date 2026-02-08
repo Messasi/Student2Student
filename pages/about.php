@@ -1,50 +1,93 @@
-<?php include '../includes/header.php'; ?>
+<?php
+// Mock data for the static layout
+$events = [
+    [
+        'title' => 'The Winter Ball 2026',
+        'date' => 'Friday, 20th Feb',
+        'venue' => 'Main Students Union',
+        'status' => 'Sold Out',
+        'resale_count' => 12,
+        'image' => 'https://images.unsplash.com/photo-1514525253344-7633979148d8?auto=format&fit=crop&w=800&q=80'
+    ],
+    [
+        'title' => 'Sports Night: Neon Glow',
+        'date' => 'Wednesday, 11th Feb',
+        'venue' => 'The Warehouse Club',
+        'status' => 'Available',
+        'resale_count' => 4,
+        'image' => 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80'
+    ],
+    [
+        'title' => 'Post-Grad Gala',
+        'date' => 'Saturday, 14th Feb',
+        'venue' => 'Grand Hall',
+        'status' => 'Sold Out',
+        'resale_count' => 2,
+        'image' => 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=800&q=80'
+    ]
+];
 
-<div class="bg-white min-h-screen font-sans">
-    <section class="relative bg-[#0A192F] rounded-b-[3rem] px-6 lg:px-[60px] py-24 overflow-hidden text-center">
-        <div class="relative z-10 max-w-3xl mx-auto">
-            <h1 class="text-4xl lg:text-6xl font-extrabold text-white leading-tight mb-8 tracking-tight">
-                What Makes Us Different?
-            </h1>
-            <p class="text-lg text-white/70 font-medium leading-relaxed mb-10">
-                The student ticket market is broken and unsafe. We built Student2Student to fix that. Our platform is designed to protect both buyers and sellers, creating a secure environment for students to exchange tickets without fear of fraud.
-            </p>
+include '../includes/header.php'; 
+?>
+
+<div class="mx-auto px-6 lg:px-[60px] py-12">
+    <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+        <div>
+            <h1 class="text-4xl font-extrabold text-[#0A192F] mb-3">Event Hub</h1>
+            <p class="text-[#64748B] font-medium">Browse official events and find verified student resales.</p>
         </div>
-        <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#0052FF]/10 rounded-full blur-[100px]"></div>
-    </section>
-
-    <section class="max-w-7xl mx-auto px-6 lg:px-[60px] -mt-16 relative z-20">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        <div class="bg-white border border-[#E2E8F0] p-10 rounded-[1.5rem] shadow-xl hover:border-[#0052FF]/30 transition-all group">
-            <div class="w-2 h-2 flex items-center justify-center mb-6 transition-colors">
-                </div>
-            <h3 class="text-3xl font-bold text-[#0A192F] mb-4 tracking-tighter">The Price Scraper</h3>
-            <p class="text-[#64748B] text-lg leading-relaxed font-medium">
-                We cross-reference every listing against live data from ticketing platforms. If a ticket is listed for more than 30% above face value, we flag it. This keeps prices fair and prevents scalping.
-            </p>
+        <div class="mt-4 md:mt-0">
+            <span class="text-sm font-bold text-[#64748B] mr-2">Sort by:</span>
+            <select class="bg-white border border-[#E2E8F0] rounded-lg px-4 py-2 text-sm font-bold focus:outline-none focus:border-[#0052FF]">
+                <option>Date (Soonest)</option>
+                <option>Most Popular</option>
+                <option>Sold Out First</option>
+            </select>
         </div>
-
-        <div class="bg-white border border-[#E2E8F0] p-10 rounded-[1.5rem] shadow-xl hover:border-[#0052FF]/30 transition-all group">
-            <div class="w-2 h-2 flex items-center justify-center mb-6 transition-colors">
-            </div>
-            <h3 class="text-3xl font-bold text-[#0A192F] mb-4 tracking-tighter">Digital Fingerprinting</h3>
-            <p class="text-[#64748B] text-lg leading-relaxed font-medium">
-                Using Perceptual Hashing (pHash), we scan every PDF uploaded. This ensures that no ticket is sold twice, even if the filename is changed.
-            </p>
-        </div>
-
-        <div class="bg-white border border-[#E2E8F0] p-10 rounded-[1.5rem] shadow-xl hover:border-[#0052FF]/30 transition-all group">
-            <div class="w-2 h-2 flex items-center justify-center mb-6 transition-colors">
-                </div>
-            <h3 class="text-3xl font-bold text-[#0A192F] mb-4 tracking-tighter">Secure Escrow</h3>
-            <p class="text-[#64748B] text-lg leading-relaxed font-medium">
-                Money is held in our virtual vault until 24 hours after the event. If the ticket doesn't work, the seller doesn't get paid. It's that simple.
-            </p>
-        </div>
-
     </div>
-</section>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <?php foreach ($events as $event): ?>
+            <div class="group bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div class="relative h-48 overflow-hidden">
+                    <img src="<?php echo $event['image']; ?>" alt="Event" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    
+                    <div class="absolute top-4 left-4">
+                        <?php if ($event['status'] === 'Sold Out'): ?>
+                            <span class="bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                                Sold Out Officially
+                            </span>
+                        <?php else: ?>
+                            <span class="bg-green-500 text-white text-xs font-black px-3 py-1.5 rounded-full uppercase tracking-wider shadow-lg">
+                                Tickets Available
+                            </span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-[#0052FF] uppercase tracking-widest"><?php echo $event['date']; ?></span>
+                        <div class="flex items-center text-[#64748B]">
+                             <span class="text-xs font-bold"><?php echo $event['venue']; ?></span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-extrabold text-[#0A192F] mb-4"><?php echo $event['title']; ?></h3>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-[#F1F5F9]">
+                        <div>
+                            <p class="text-[10px] font-bold text-[#64748B] uppercase">Student Sellers</p>
+                            <p class="text-lg font-black text-[#0A192F]"><?php echo $event['resale_count']; ?> Available</p>
+                        </div>
+                        <a hqref="/student2student/events/view-event.php?id=1" class="bg-[#F4F7FA] hover:bg-[#0052FF] hover:text-white text-[#0A192F] px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+                            View Tickets
+                        </a>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
 </div>
 
 <?php include '../includes/footer.php'; ?>

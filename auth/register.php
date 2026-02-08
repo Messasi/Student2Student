@@ -30,9 +30,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = $_POST['confirm_password'] ?? '';
     $terms = isset($_POST['terms']);
     
-    // --- VALIDATION (Keep your existing validation logic) ---
-    if (empty($username)) { $errors[] = 'Username is required'; }
-    // ... [Your other validation checks here] ...
+    //Validation Checks
+      // Username
+    if (empty($username)) {
+        $errors[] = 'Username is required';
+    } elseif (strlen($username) <= 2) {
+        $errors[] = 'Username must be longer than 2 characters';
+    } elseif (!preg_match('/^[A-Za-z]+$/', $username)) {
+        $errors[] = 'Username can only contain letters';
+    }
+
+    // Name
+    if (empty($first_name) || empty($last_name) || strlen($first_name) < 2 || strlen($last_name) < 2) {
+        $errors[] = 'Full name is required and must be at least 2 characters long';
+    }
+
+    // Emails
+    if (empty($email)) {
+        $errors[] = 'Student email is required';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/@(.+\.)?(ac\.uk|edu)$/i', $email)) {
+        $errors[] = 'Please use a valid student email address (.ac.uk or .edu)';
+    }
+
+    if (empty($personal_email) || !filter_var($personal_email, FILTER_VALIDATE_EMAIL)) {
+        $errors[] = 'Valid personal email is required';
+    }
+
+    // Grad Year
+    if (empty($grad_year)) {
+        $errors[] = 'Graduation year is required';
+    }
+
+    // Password
+    if (empty($password) || strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+        $errors[] = 'Password must be 8+ characters with uppercase, lowercase, and numbers';
+    }
+
+    if ($password !== $confirm_password) {
+        $errors[] = 'Passwords do not match';
+    }
+
+    if (!$terms) {
+        $errors[] = 'You must agree to the terms and conditions';
+    }
 
     if (empty($errors)) {
         if (!isset($conn)) {

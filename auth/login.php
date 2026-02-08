@@ -108,13 +108,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     />
                 </div>
 
-                <!-- Password -->
+                <!-- Forgot Password Link -->
                 <div class="mb-6">
-                    <label for="password" class="block text-sm font-bold text-[#0A192F] mb-2">Password</label>
-                    <input type="password" id="password"  name="password"  placeholder="*********" required
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="password" class="block text-sm font-bold text-[#0A192F]">Password</label>
+                        <a href="/student2student/auth/forgot_password.php" class="text-xs font-bold text-[#0052FF] hover:underline">Forgot Password?</a>
+                    <!--Password input-->
+                    </div>
+                        <input type="password" id="password" name="password" placeholder="*********" required
                         class="w-full px-4 py-3 bg-[#F4F7FA] border border-[#E2E8F0] rounded-xl text-[#0A192F] font-medium focus:outline-none focus:border-[#0052FF] focus:bg-white transition-all"
                     />
-                </div>
+                 </div>
 
                 <!-- Submit Button -->
                 <button 
