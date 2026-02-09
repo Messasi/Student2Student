@@ -1,7 +1,20 @@
 <?php 
 require_once '../config/database.php';
 include '../includes/header.php'; 
+
+
+//user has to be logged in to access this page
+
+if (!isset($_SESSION['user_id'])) {
+    
+    // Redirect to login page with an alert message
+    echo "<script>alert('Please log in to access the ticket listing page.'); window.location.href = '/student2student/auth/login.php';</script>";
+    exit;
+}
+
 ?>
+
+
 
 <div class="min-h-screen bg-[#F5F8FA] font-sans text-[#0A192F] pb-24">
    <div class="max-w-4xl mx-auto px-6 pt-12 mb-8">
@@ -31,7 +44,7 @@ include '../includes/header.php';
                     <p class="text-sm text-[#64748B] font-medium mt-1">Start by providing the event link and your ticket file.</p>
                 </div>
 
-                <form action="listing_details.php" method="POST" enctype="multipart/form-data" class="space-y-10">
+                <form action="ticket_details.php" method="POST" enctype="multipart/form-data" class="space-y-10">
                     
                     <div class="space-y-3">
                         <label class="block text-[11px] font-black uppercase tracking-widest text-[#0A192F]">Event Link</label>

@@ -40,8 +40,8 @@
         <div class="flex-grow flex flex-col justify-between px-8 py-12">
             <nav class="flex flex-col space-y-8">
                 <a href="/student2student/index.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">Discovery</a>
-                <a href="/student2student/listings/ticket_listing.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">Sell Tickets</a>
-                <a href="/student2student/pages/about.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">About</a>
+                <a href="/student2student/listings/ticket_listing.php " class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">Sell Tickets</a>
+                <a href="/student2student/pages/about.php" class="text-4xl font-extrabold text-[#0A192F] no-underline font-['Inter'] tracking-tight">Events</a>
             </nav>
 
             <div class="space-y-4">

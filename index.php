@@ -11,46 +11,46 @@ function renderTicketRow($title) {
         ['event' => 'Society Gala 2026', 'info' => 'Grand Hall', 'price' => '45.00', 'user' => 'emma_h', 'verified' => false],
     ];
 
-    echo '
-    <section class="mb-16">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-[#0A192F] tracking-tight font-sans">'.$title.'</h2>
-        </div>
-        
-        <div class="flex lg:grid lg:grid-cols-4 gap-6 overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 scrollbar-hide snap-x snap-mandatory">
-            ';
-            foreach($mock_data as $data) {
+        echo '
+        <section class="mb-16">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-[#0A192F] tracking-tight font-sans">'.$title.'</h2>
+            </div>
+            
+            <div class="flex lg:grid lg:grid-cols-4 gap-6 overflow-x-auto lg:overflow-x-visible pb-4 lg:pb-0 scrollbar-hide snap-x snap-mandatory">
+                ';
+                foreach($mock_data as $data) {
+                    echo '
+                    <div class="min-w-full lg:min-w-0 bg-white border border-[#E2E8F0] rounded-2xl p-6 hover:border-[#0052FF]/30 transition-colors shadow-sm snap-center lg:snap-align-none">
+                        
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-[10px] font-bold uppercase">
+                                '.substr($data['user'], 0, 1).'
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-[#0A192F] font-sans">@'.$data['user'].'</span>
+                                '.($data['verified'] ? '<span class="text-[9px] font-bold text-[#0052FF] uppercase tracking-tighter">Verified Price</span>' : '').'
+                            </div>
+                        </div>
+
+                        <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-[#CBD5E1]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                            </svg>
+                        </div>
+
+                        <div class="text-sm font-bold text-[#0A192F] font-sans mb-1 uppercase truncate">'.$data['event'].'</div>
+                        <div class="text-xs font-medium text-[#64748B] font-sans mb-6">'.$data['info'].'</div>
+                        
+                        <div class="flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
+                            <span class="text-lg font-bold text-[#0A192F] font-sans">£'.$data['price'].'</span>
+                            <a href="/student2student/checkout.php" class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold font-sans uppercase tracking-wide cursor-pointer hover:bg-[#0041CC] transition-colors">Buy</a>
+                        </div>
+                    </div>';
+                }
                 echo '
-                <div class="min-w-full lg:min-w-0 bg-white border border-[#E2E8F0] rounded-2xl p-6 hover:border-[#0052FF]/30 transition-colors shadow-sm snap-center lg:snap-align-none">
-                    
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-8 h-8 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-[10px] font-bold uppercase">
-                            '.substr($data['user'], 0, 1).'
-                        </div>
-                        <div class="flex flex-col">
-                            <span class="text-xs font-bold text-[#0A192F] font-sans">@'.$data['user'].'</span>
-                            '.($data['verified'] ? '<span class="text-[9px] font-bold text-[#0052FF] uppercase tracking-tighter">Verified Price</span>' : '').'
-                        </div>
-                    </div>
-
-                    <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-[#CBD5E1]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                        </svg>
-                    </div>
-
-                    <div class="text-sm font-bold text-[#0A192F] font-sans mb-1 uppercase truncate">'.$data['event'].'</div>
-                    <div class="text-xs font-medium text-[#64748B] font-sans mb-6">'.$data['info'].'</div>
-                    
-                    <div class="flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
-                        <span class="text-lg font-bold text-[#0A192F] font-sans">£'.$data['price'].'</span>
-                        <div class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold font-sans uppercase tracking-wide cursor-pointer hover:bg-[#0041CC] transition-colors">Buy</div>
-                    </div>
-                </div>';
-            }
-            echo '
-        </div>
-    </section>';
+            </div>
+        </section>';
 }
 ?>  
 <style> 

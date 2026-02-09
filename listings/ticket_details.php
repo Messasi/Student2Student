@@ -26,7 +26,7 @@ include '../includes/header.php';
 
     <div class="max-w-4xl mx-auto px-6">
         <div class="bg-white rounded-[2.5rem] shadow-sm border border-[#E2E8F0] overflow-hidden">
-            <form action="listing_review.php" method="POST" class="p-12 space-y-10">
+            <form action="ticket_review.php" method="POST" class="p-12 space-y-10">
                 
                 <div class="border-b border-[#F1F5F9] pb-8">
                     <h2 class="text-3xl font-black tracking-tighter text-[#0A192F]">Ticket Details</h2>
