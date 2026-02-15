@@ -5,7 +5,8 @@ include '../includes/header.php';
 
 //user has to be logged in to access this page
 
-if (!isset($_SESSION['user_id'])) {
+
+if (isset($_SESSION['user_id'])) { //Always logged in for testing purposes
     
     // Redirect to login page with an alert message
     echo "<script>alert('Please log in to access the ticket listing page.'); window.location.href = '/student2student/auth/login.php';</script>";

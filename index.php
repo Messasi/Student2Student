@@ -110,34 +110,6 @@ html {
         </h1>
         <div class="h-1.5 w-20 bg-[#0052FF] mt-4 rounded-full"></div>
     </div>
-
-    <div class="flex flex-row items-center gap-4 ml-auto">
-        
-        <div class="relative">
-            <select class="appearance-none bg-white border-2 border-[#E2E8F0] text-[#0A192F] py-3 pl-4 pr-10 rounded-xl font-bold font-sans text-sm focus:outline-none focus:border-[#0052FF] focus:ring-2 focus:ring-[#0052FF]/20 transition-all cursor-pointer min-w-[160px]">
-                <option value="" class="font-sans font-medium text-[#0A192F]">All Categories</option>
-                <option value="club-nights" class="font-sans font-medium text-[#0A192F]">Club Nights</option>
-                <option value="sports" class="font-sans font-medium text-[#0A192F]">Sports Matches</option>
-                <option value="society" class="font-sans font-medium text-[#0A192F]">Society Events</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#0052FF]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
-            </div>
-        </div>
-
-        <div class="relative">
-            <select class="appearance-none bg-white border-2 border-[#E2E8F0] text-[#0A192F] py-3 pl-10 pr-4 rounded-xl font-bold font-sans text-sm focus:outline-none focus:border-[#0052FF] focus:ring-2 focus:ring-[#0052FF]/20 transition-all cursor-pointer min-w-[160px]">
-                <option value="newest" class="font-sans font-medium text-[#0A192F]">Sort: Newest</option>
-                <option value="price-low" class="font-sans font-medium text-[#0A192F]">Price: Low-High</option>
-                <option value="price-high" class="font-sans font-medium text-[#0A192F]">Price: High-Low</option>
-                <option value="date" class="font-sans font-medium text-[#0A192F]">Event Date</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-[#0052FF]">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path></svg>
-            </div>
-        </div>
-
-    </div>
 </div>
 
         <div class="space-y-4">

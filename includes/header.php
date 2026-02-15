@@ -49,7 +49,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <?php if (isset($_SESSION['user_id'])): ?>
+                    <?php if (!isset($_SESSION['user_id'])): ?> <!--allow login for testing purposes-->
                         <div class="relative inline-block text-left">
                             <button id="user-menu-button" class="w-10 h-10 rounded-full bg-[#0052FF]/10 flex items-center justify-center text-[#0052FF] border border-[#0052FF]/20 hover:bg-[#0052FF]/20 transition-all focus:outline-none">
                                 <i data-lucide="user" class="w-5 h-5"></i>
