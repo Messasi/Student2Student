@@ -84,7 +84,7 @@ $total = number_format((float)$price + (float)$fee, 2);
 
             <div class="mt-16 max-w-xl text-center">
                 <p class="text-sm text-[#64748B] font-bold leading-relaxed italic opacity-80">
-                    The ticket PDF will be emailed to your personal email address immediately after payment is confirmed.
+                    The ticket PDF will be emailed to your personal email address immediately after payment.
                 </p>
             </div>
         </div>

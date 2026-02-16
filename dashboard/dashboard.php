@@ -164,8 +164,8 @@ $pending = "32.00";
 
                             <button onclick="confirmReport()" 
                                     title="Report Issue" 
-                                    class="p-2.5 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all">
-                                <i data-lucide="flag" class="w-5 h-5"></i>
+                                    class="p-2.5 bg-gray-200 text-black-40 rounded-xl  transition-all">
+                                <i data-lucide="flag-off" class="w-5 h-5"></i>
                             </button>
                         </div>
                     </div>

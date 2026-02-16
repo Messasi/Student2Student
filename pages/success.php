@@ -25,7 +25,7 @@ include './includes/header.php';
             <a href="index.php" class="bg-[#0A192F] text-white px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-[#1a2e4d] transition-all">
                 Back to Browse
             </a>
-            <a href="dashboard.php" class="bg-white border-2 border-[#E2E8F0] text-[#0A192F] px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:border-[#0052FF] transition-all">
+            <a href="/student2student/dashboard/dashboard.php" class="bg-white border-2 border-[#E2E8F0] text-[#0A192F] px-8 py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:border-[#0052FF] transition-all">
                 View My Tickets
             </a>
         </div>

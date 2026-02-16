@@ -91,7 +91,7 @@ html {
             </div>
             
             <div class="flex flex-wrap justify-start gap-4">
-                <a href="/student2student/listings/create.php" 
+                <a href="/student2student/listings/ticket_listing.php" 
                 class="bg-[#0052FF] text-white px-8 py-4 rounded-xl font-bold hover:bg-[#0041CC] transition-all shadow-lg font-sans">
                     Sell Your Ticket
                 </a>

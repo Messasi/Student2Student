@@ -11,7 +11,7 @@ $sellers = [
 
 <div class="mx-auto px-6 lg:px-[60px] py-12 bg-[#F5F8FA] min-h-screen font-sans">
     <div class="max-w-5xl mx-auto mb-12">
-        <a href="event_hub.php" class="flex items-center text-[#64748B] mb-8 hover:text-[#0052FF] transition-colors">
+        <a href="about.php" class="flex items-center text-[#64748B] mb-8 hover:text-[#0052FF] transition-colors">
             <i data-lucide="chevron-left" class="w-4 h-4 mr-1"></i>
             <span class="text-[10px] font-black uppercase tracking-widest">Back to Hub</span>
         </a>
@@ -22,20 +22,21 @@ $sellers = [
                 <h1 class="text-5xl font-black text-[#0A192F] tracking-tighter uppercase">Networking Dinner 2026</h1>
                 <p class="text-[#64748B] font-bold mt-2">Whitworth Hall • Friday, 20th Feb</p>
             </div>
-            <button class="bg-[#0A192F] text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-[#0052FF] transition-all">
+            <button href="/student2student/ticket_listing.php" class="bg-[#0A192F] text-white px-8 py-4 rounded-[1rem] font-black uppercase tracking-widest text-xs hover:bg-[#0052FF] transition-all">
                 Sell Your Ticket
             </button>
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto bg-white rounded-[2.5rem] border border-[#E2E8F0] overflow-hidden shadow-sm">
+    <div class="max-w-5xl mx-auto bg-white rounded-[1rem] border border-[#E2E8F0] overflow-hidden shadow-sm">
         <div class="p-8 border-b border-[#F1F5F9] flex justify-between items-center">
             <h3 class="font-black text-[#0A192F] uppercase tracking-tight">Available Tickets</h3>
             <div class="flex items-center gap-2">
                 <span class="text-[10px] font-black text-[#94A3B8] uppercase">Sort by:</span>
                 <select class="text-xs font-black text-[#0052FF] bg-transparent outline-none cursor-pointer">
                     <option>Lowest Price</option>
-                    <option>Recently Added</option>
+                    <option>Recently Added</option> 
+                    <option>Highest Rating</option> 
                 </select>
             </div>
         </div>
@@ -84,3 +85,5 @@ $sellers = [
 </div>
 
 <script>lucide.createIcons();</script>
+
+<?php include '../includes/footer.php';
