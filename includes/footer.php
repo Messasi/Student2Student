@@ -14,7 +14,7 @@
 
                 <nav class="flex flex-wrap justify-center gap-x-8 gap-y-4">
                     <a href="/student2student/index.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">Discovery</a>
-                    <a href="/student2student/listings/create.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">Sell Tickets</a>
+                    <a href="/student2student/listings/ticket_listing.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">Sell Tickets</a>
                     <a href="/student2student/pages/events.php" class="text-[0.9rem] font-bold text-[#64748B] hover:text-[#0052FF] transition-colors no-underline font-['Inter']">About</a>
                 </nav>
 
