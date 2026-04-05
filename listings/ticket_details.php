@@ -1,7 +1,5 @@
 <?php 
-// This page is where we handle the details of the ticket like the event name and price.
-// We get the data that was previously saved in the session from the upload page.
-// If the session is empty, it means the student skipped the upload, so we send them back.
+
 session_start();
 
 require_once '../config/database.php';
@@ -105,6 +103,8 @@ include '../includes/header.php';
                             <option value="club">Club Night</option>
                             <option value="sports">Sports</option>
                             <option value="society">Society</option>
+                            <option value="society">Academic and Careers</option>
+                            <option value="society">Other</option>
                         </select>
                     </div>
 
