@@ -78,7 +78,7 @@ html {
             </div>
             
             <h1 class="text-6xl lg:text-[110px] font-black text-white leading-[0.8] mb-12 tracking-tighter uppercase">
-                Zero <span class="text-[#0052FF]">Fraud.</span> <br> 
+                Zero Fraud. <br> 
                 Zero Worries.
             </h1>
 

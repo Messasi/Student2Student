@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!$terms) {
         $errors[] = 'You must agree to the terms and conditions';
-    }
+    }   
 
     if (empty($errors)) {
         if (!isset($conn)) {
