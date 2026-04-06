@@ -1,6 +1,63 @@
 <?php 
 require_once '../config/database.php';
 include '../includes/header.php'; 
+
+// Fetch and group tickets by event name, count availability, and get the lowest price
+$query = "SELECT 
+            event_name, 
+            event_location, 
+            category, 
+            MIN(selling_price) as min_price, 
+            COUNT(*) as ticket_count 
+          FROM tickets 
+          WHERE status = 'active' AND event_date >= NOW() 
+          GROUP BY event_name, event_location, category 
+          ORDER BY event_date ASC";
+
+$result = $conn->query($query);
+
+// Organize events into arrays by category
+$events = [
+    'sports' => [],
+    'club' => [],
+    'society' => [],
+    'academic' => []
+];
+
+while ($row = $result->fetch_assoc()) {
+    // Map database categories to section IDs
+    $cat = strtolower($row['category']);
+    if (strpos($cat, 'club') !== false) $events['club'][] = $row;
+    elseif (strpos($cat, 'sports') !== false) $events['sports'][] = $row;
+    elseif (strpos($cat, 'society') !== false) $events['society'][] = $row;
+    elseif (strpos($cat, 'academic') !== false) $events['academic'][] = $row;
+}
+
+// Helper function to render a row (prevents repeating HTML)
+function renderEventRow($eventList, $icon, $rowId) {
+    if (empty($eventList)) {
+        echo '<p class="text-[#64748B] font-bold uppercase text-[10px] tracking-widest ml-2">No active events in this category.</p>';
+        return;
+    }
+    foreach ($eventList as $event) {
+        ?>
+        <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] bg-white border border-[#E2E8F0] rounded-[2rem] p-6 snap-start group transition-all hover:border-[#0052FF]/30">
+            <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-5 flex items-center justify-center border border-[#F1F5F9]">
+                <i data-lucide="<?php echo $icon; ?>" class="w-10 h-10 text-[#CBD5E1] group-hover:text-[#0052FF]/20 group-hover:scale-110 transition-all"></i>
+            </div>
+            <div class="text-md font-black text-[#0A192F] mb-1 uppercase truncate tracking-tight"><?php echo htmlspecialchars($event['event_name']); ?></div>
+            <div class="text-xs font-bold text-[#64748B] mb-8 truncate uppercase"><?php echo htmlspecialchars($event['event_location']); ?></div>
+            <div class="flex justify-between items-center pt-5 border-t border-[#F1F5F9]">
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-black text-[#94A3B8] uppercase">From £<?php echo number_format($event['min_price'], 2); ?></span>
+                    <span class="text-xl font-black text-[#0A192F] tracking-tighter"><?php echo $event['ticket_count']; ?> Tickets</span>
+                </div>
+                <a href="view_event_tickets.php?event=<?php echo urlencode($event['event_name']); ?>" class="h-11 px-5 bg-[#0052FF] text-white text-[10px] flex items-center rounded-xl font-black uppercase tracking-widest hover:bg-[#0A192F] transition-colors shadow-lg">View</a>
+            </div>
+        </div>
+        <?php
+    }
+}
 ?>
 
 <div class="bg-[#F5F8FA] min-h-screen pb-24">
@@ -16,21 +73,11 @@ include '../includes/header.php';
     </div>
     
     <div class="px-6 lg:px-[60px] flex gap-3 overflow-x-auto pb-16 scrollbar-hide">
-        <button onclick="filterEvents('all', this)" class="filter-btn px-8 py-4 bg-[#0052FF] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#0052FF]/20 transition-all">
-            All Events
-        </button>
-        <button onclick="filterEvents('club', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all ">
-            Club Nights
-        </button>
-        <button onclick="filterEvents('sports', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">
-            Sports
-        </button>
-        <button onclick="filterEvents('society', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all ">
-            Societies
-        </button>
-        <button onclick="filterEvents('academic', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all ">
-            Academic & Careers
-        </button>
+        <button onclick="filterEvents('all', this)" class="filter-btn px-8 py-4 bg-[#0052FF] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all">All Events</button>
+        <button onclick="filterEvents('club', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Club Nights</button>
+        <button onclick="filterEvents('sports', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Sports</button>
+        <button onclick="filterEvents('society', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Societies</button>
+        <button onclick="filterEvents('academic', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Academic & Careers</button>
     </div>
 
     <section id="section-sports" class="event-section mb-20 px-6 lg:px-[60px]">
@@ -42,22 +89,7 @@ include '../includes/header.php';
             </div>
         </div>
         <div id="row-sports" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php for($i=1; $i<=5; $i++): ?>
-            <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] bg-white border border-[#E2E8F0] rounded-[2rem] p-6 snap-start group transition-all hover:border-[#0052FF]/30">
-                <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-5 flex items-center justify-center border border-[#F1F5F9]">
-                    <i data-lucide="trophy" class="w-10 h-10 text-[#CBD5E1] group-hover:text-[#0052FF]/20 group-hover:scale-110 transition-all"></i>
-                </div>
-                <div class="text-md font-black text-[#0A192F] mb-1 uppercase truncate tracking-tight">Varsity Match <?php echo $i; ?></div>
-                <div class="text-xs font-bold text-[#64748B] mb-8 truncate">Main Stadium Arena</div>
-                <div class="flex justify-between items-center pt-5 border-t border-[#F1F5F9]">
-                    <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-[#94A3B8] uppercase">Available</span>
-                        <span class="text-xl font-black text-[#0A192F] tracking-tighter"><?php echo rand(2, 12); ?> Tickets</span>
-                    </div>
-                    <a href="view_event_tickets.php" class="h-11 px-5 bg-[#0052FF] text-white text-[10px] flex items-center rounded-xl font-black uppercase tracking-widest hover:bg-[#0A192F] transition-colors shadow-lg shadow-[#0052FF]/10">View</a>
-                </div>
-            </div>
-            <?php endfor; ?>
+            <?php renderEventRow($events['sports'], 'trophy', 'row-sports'); ?>
         </div>
     </section>
 
@@ -70,22 +102,7 @@ include '../includes/header.php';
             </div>
         </div>
         <div id="row-club" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php for($i=1; $i<=5; $i++): ?>
-            <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] bg-white border border-[#E2E8F0] rounded-[2rem] p-6 snap-start group transition-all hover:border-[#0052FF]/30">
-                <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-5 flex items-center justify-center border border-[#F1F5F9]">
-                    <i data-lucide="music" class="w-10 h-10 text-[#CBD5E1] group-hover:text-[#0052FF]/20 group-hover:scale-110 transition-all"></i>
-                </div>
-                <div class="text-md font-black text-[#0A192F] mb-1 uppercase truncate tracking-tight">Student Rave <?php echo $i; ?></div>
-                <div class="text-xs font-bold text-[#64748B] mb-8 truncate">The Union Nightclub</div>
-                <div class="flex justify-between items-center pt-5 border-t border-[#F1F5F9]">
-                    <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-[#94A3B8] uppercase">Available</span>
-                        <span class="text-xl font-black text-[#0A192F] tracking-tighter"><?php echo rand(1, 15); ?> Tickets</span>
-                    </div>
-                    <a href="view_event_tickets.php" class="h-11 px-5 bg-[#0052FF] text-white text-[10px] flex items-center rounded-xl font-black uppercase tracking-widest hover:bg-[#0A192F] transition-colors shadow-lg shadow-[#0052FF]/10">View</a>
-                </div>
-            </div>
-            <?php endfor; ?>
+            <?php renderEventRow($events['club'], 'music', 'row-club'); ?>
         </div>
     </section>
 
@@ -98,22 +115,7 @@ include '../includes/header.php';
             </div>
         </div>
         <div id="row-society" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php for($i=1; $i<=5; $i++): ?>
-            <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] bg-white border border-[#E2E8F0] rounded-[2rem] p-6 snap-start group transition-all hover:border-[#0052FF]/30">
-                <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-5 flex items-center justify-center border border-[#F1F5F9]">
-                    <i data-lucide="users" class="w-10 h-10 text-[#CBD5E1] group-hover:text-[#0052FF]/20 group-hover:scale-110 transition-all"></i>
-                </div>
-                <div class="text-md font-black text-[#0A192F] mb-1 uppercase truncate tracking-tight">Society Social <?php echo $i; ?></div>
-                <div class="text-xs font-bold text-[#64748B] mb-8 truncate">Student Common Room</div>
-                <div class="flex justify-between items-center pt-5 border-t border-[#F1F5F9]">
-                    <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-[#94A3B8] uppercase">Available</span>
-                        <span class="text-xl font-black text-[#0A192F] tracking-tighter"><?php echo rand(5, 20); ?> Tickets</span>
-                    </div>
-                    <a href="view_event_tickets.php" class="h-11 px-5 bg-[#0052FF] text-white text-[10px] flex items-center rounded-xl font-black uppercase tracking-widest hover:bg-[#0A192F] transition-colors shadow-lg shadow-[#0052FF]/10">View</a>
-                </div>
-            </div>
-            <?php endfor; ?>
+            <?php renderEventRow($events['society'], 'users', 'row-society'); ?>
         </div>
     </section>
 
@@ -126,35 +128,19 @@ include '../includes/header.php';
             </div>
         </div>
         <div id="row-academic" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php for($i=1; $i<=5; $i++): ?>
-            <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] bg-white border border-[#E2E8F0] rounded-[2rem] p-6 snap-start group transition-all hover:border-[#0052FF]/30">
-                <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-5 flex items-center justify-center border border-[#F1F5F9]">
-                    <i data-lucide="graduation-cap" class="w-10 h-10 text-[#CBD5E1] group-hover:text-[#0052FF]/20 group-hover:scale-110 transition-all"></i>
-                </div>
-                <div class="text-md font-black text-[#0A192F] mb-1 uppercase truncate tracking-tight">Career Workshop <?php echo $i; ?></div>
-                <div class="text-xs font-bold text-[#64748B] mb-8 truncate">Lecture Hall B</div>
-                <div class="flex justify-between items-center pt-5 border-t border-[#F1F5F9]">
-                    <div class="flex flex-col">
-                        <span class="text-[9px] font-black text-[#94A3B8] uppercase">Available</span>
-                        <span class="text-xl font-black text-[#0A192F] tracking-tighter"><?php echo rand(2, 10); ?> Tickets</span>
-                    </div>
-                    <a href="view_event_tickets.php" class="h-11 px-5 bg-[#0052FF] text-white text-[10px] flex items-center rounded-xl font-black uppercase tracking-widest hover:bg-[#0A192F] transition-colors shadow-lg shadow-[#0052FF]/10">View</a>
-                </div>
-            </div>
-            <?php endfor; ?>
+            <?php renderEventRow($events['academic'], 'graduation-cap', 'row-academic'); ?>
         </div>
     </section>
 </div>
 
 <script>
 function filterEvents(category, btn) {
-    // Reset all buttons, highlight current one in blue
     document.querySelectorAll('.filter-btn').forEach(button => {
-        button.classList.remove('bg-[#0052FF]', 'text-white', 'shadow-xl', 'shadow-[#0052FF]/20');
-        button.classList.add('bg-white', 'text-[#64748B]', 'shadow-sm');
+        button.classList.remove('bg-[#0052FF]', 'text-white', 'shadow-xl');
+        button.classList.add('bg-white', 'text-[#64748B]');
     });
-    btn.classList.add('bg-[#0052FF]', 'text-white', 'shadow-xl', 'shadow-[#0052FF]/20');
-    btn.classList.remove('bg-white', 'text-[#64748B]', 'shadow-sm');
+    btn.classList.add('bg-[#0052FF]', 'text-white', 'shadow-xl');
+    btn.classList.remove('bg-white', 'text-[#64748B]');
 
     const sections = {
         sports: document.getElementById('section-sports'),

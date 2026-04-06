@@ -25,6 +25,7 @@ $location     = $scraped['venue']        ?? '';
 $event_date   = $scraped['event_date']   ?? '';
 $retail_price = (float)($scraped['retail_price'] ?? 0);
 $manual_msg   = $scraped['manual_msg']   ?? '';
+$category = $scraped['category'] ?? '';
 
 // This is where we set the rules for the selling price to stop people overcharging.
 // Students can sell for a small profit (40% max) or a big discount (50% min).
@@ -100,11 +101,11 @@ include '../includes/header.php';
                     <div class="space-y-2">
                         <label class="block text-[10px] font-black uppercase tracking-widest text-[#94A3B8]">Category</label>
                         <select name="category" required class="w-full p-4 bg-[#F8FAFC] border-2 border-transparent rounded-xl font-bold outline-none">
-                            <option value="club">Club Night</option>
-                            <option value="sports">Sports</option>
-                            <option value="society">Society</option>
-                            <option value="society">Academic and Careers</option>
-                            <option value="society">Other</option>
+                            <option value="Club Night" <?php echo $category === 'Club Night' ? 'selected' : ''; ?>>Club Night</option>
+                            <option value="Sports" <?php echo $category === 'Sports' ? 'selected' : ''; ?>>Sports</option>
+                            <option value="Society" <?php echo $category === 'Society' ? 'selected' : ''; ?>>Society</option>
+                            <option value="Academic and Careers" <?php echo $category === 'Academic and Careers' ? 'selected' : ''; ?>>Academic and Careers</option>
+                            <option value="Other" <?php echo ($category === 'Other' || empty($category)) ? 'selected' : ''; ?>>Other</option>
                         </select>
                     </div>
 

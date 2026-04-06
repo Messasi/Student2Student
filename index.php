@@ -26,7 +26,8 @@ if ($user_id) {
     if ($total_clicks == 0) {
         $cats = ['Club Night', 'Society', 'Sports', 'Academic and Careers', 'Other'];
         foreach ($cats as $c) {
-            $stmt = $conn->prepare("SELECT t.*, u.username, u.points FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 3");
+            // Updated query to include profile_picture
+            $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 3");
             $stmt->bind_param("ss", $c, $today);
             $stmt->execute();
             $res = $stmt->get_result();
@@ -37,7 +38,8 @@ if ($user_id) {
         $slots = ["gold" => "u.points >= 500", "silver" => "u.points BETWEEN 100 AND 499", "bronze" => "u.points BETWEEN 10 AND 99", "new" => "u.points < 10"];
         foreach ($slots as $type => $condition) {
             $order = ($type == 'new') ? "t.created_at DESC" : "u.points DESC";
-            $res = $conn->query("SELECT t.*, u.username, u.points FROM tickets t JOIN users u ON t.seller_id = u.id WHERE $condition AND t.status = 'active' AND t.event_date >= '$today' ORDER BY $order LIMIT 3");
+            // Updated query to include profile_picture
+            $res = $conn->query("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE $condition AND t.status = 'active' AND t.event_date >= '$today' ORDER BY $order LIMIT 3");
             while ($row = $res->fetch_assoc()) { $recommended_tickets[] = $row; }
         }
     }
@@ -46,13 +48,14 @@ if ($user_id) {
 // Function to fetch up to 20 tickets for each specific category row
 function getCategoryTickets($conn, $cat_name) {
     $now = date('Y-m-d H:i:s');
-    $stmt = $conn->prepare("SELECT t.*, u.username, u.points FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 20");
+    // Updated query to include profile_picture
+    $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 20");
     $stmt->bind_param("ss", $cat_name, $now);
     $stmt->execute();
     return $stmt->get_result();
 }
 
-// Logic to choose the correct color and text for the seller tier
+// Logic to choose the correct colour and text for the seller tier
 function getTierLabel($pts) {
     if ($pts >= 500) return ['text' => 'Gold', 'css' => 'text-yellow-600'];
     if ($pts >= 100) return ['text' => 'Silver', 'css' => 'text-slate-500'];
@@ -60,24 +63,6 @@ function getTierLabel($pts) {
     return ['text' => 'New', 'css' => 'text-blue-500'];
 }
 ?>
-
-<style>
-/* Container for the slider row and the hidden scrollbar */
-.slider-container { position: relative; display: flex; align-items: center; width: 100%; }
-.slider-track { display: flex; gap: 24px; width: 100%; overflow-x: auto; scroll-behavior: smooth; padding-bottom: 10px; scrollbar-width: none; -ms-overflow-style: none; }
-.slider-track::-webkit-scrollbar { display: none; }
-.js-card { flex: 0 0 auto; }
-
-/* Styling for the circular navigation arrow buttons */
-.nav-btn { position: absolute; z-index: 10; width: 44px; height: 44px; background: white; border: 1px solid #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); cursor: pointer; transition: all 0.2s; }
-.nav-btn:hover:not(:disabled) { background: #0052FF; color: white; transform: scale(1.08); border-color: #0052FF; }
-.nav-btn:disabled { opacity: 0; pointer-events: none; }
-.btn-left { left: -22px; }
-.btn-right { right: -22px; }
-
-/* Hide arrows on mobile devices to save space */
-@media (max-width: 1024px) { .nav-btn { display: none; } }
-</style>
 
 <div class="bg-white min-h-screen font-inter pb-20">
     <div class="mx-auto px-6 lg:px-[60px] py-12">
@@ -103,34 +88,42 @@ function getTierLabel($pts) {
 
         <div class="space-y-24">
             <?php if (!empty($recommended_tickets)): ?>
-            <section class="js-slider-section">
-                <h2 class="text-2xl font-bold text-[#0A192F] mb-6 tracking-tight uppercase">Recommended For You</h2>
-                <div class="slider-container">
-                    <button class="nav-btn btn-left js-prev" disabled><i data-lucide="chevron-left"></i></button>
-                    <div class="slider-track js-track">
-                        <?php foreach ($recommended_tickets as $ticket): 
-                            $tier = getTierLabel($ticket['points'] ?? 0); ?>
-                            <div class="js-card">
-                                <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 h-full flex flex-col hover:border-[#0052FF]/30 transition-all shadow-sm">
-                                    <div class="flex items-center gap-3 mb-4">
-                                        <div class="w-8 h-8 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-[10px] font-bold uppercase"><?= substr($ticket['username'] ?? 'S', 0, 1) ?></div>
-                                        <div class="flex flex-col">
-                                            <span class="text-xs font-bold text-[#0A192F]">@<?= $ticket['username'] ?></span>
-                                            <span class="text-[9px] font-bold <?= $tier['css'] ?> uppercase tracking-tighter"><?= $tier['text'] ?> Seller</span>
-                                        </div>
+            <section class="mb-16">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-[#0A192F] tracking-tight uppercase">Recommended For You</h2>
+                    <div class="flex gap-2">
+                        <button onclick="scrollRow('row-recommended', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                        <button onclick="scrollRow('row-recommended', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+                <div id="row-recommended" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
+                    <?php foreach ($recommended_tickets as $ticket): 
+                        $tier = getTierLabel($ticket['points'] ?? 0); ?>
+                        <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] snap-start">
+                            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 h-full flex flex-col hover:border-[#0052FF]/30 transition-all shadow-sm">
+                                <a href="pages/profile.php?id=<?= $ticket['seller_id'] ?>" class="flex items-center gap-3 mb-4 group/user">
+                                    <div class="w-8 h-8 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-[10px] font-bold uppercase overflow-hidden border border-transparent group-hover/user:border-[#0052FF] transition-all">
+                                        <?php if (!empty($ticket['profile_picture'])): ?>
+                                            <img src="uploads/profiles/<?= htmlspecialchars($ticket['profile_picture']) ?>" class="w-full h-full object-cover">
+                                        <?php else: ?>
+                                            <?= substr($ticket['username'] ?? 'S', 0, 1) ?>
+                                        <?php endif; ?>
                                     </div>
-                                    <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]"><i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i></div>
-                                    <div class="text-sm font-bold text-[#0A192F] uppercase mb-1 truncate"><?= $ticket['event_name'] ?></div>
-                                    <div class="text-xs font-medium text-[#64748B] mb-6"><?= $ticket['event_location'] ?></div>
-                                    <div class="mt-auto flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
-                                        <span class="text-lg font-bold">£<?= number_format($ticket['selling_price'], 2) ?></span>
-                                        <a href="pages/checkout.php?id=<?= $ticket['id'] ?>" class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold uppercase hover:bg-[#0041CC]">Buy</a>
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-[#0A192F] group-hover/user:text-[#0052FF] transition-colors">@<?= $ticket['username'] ?></span>
+                                        <span class="text-[9px] font-bold <?= $tier['css'] ?> uppercase tracking-tighter"><?= $tier['text'] ?> Seller</span>
                                     </div>
+                                </a>
+                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]"><i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i></div>
+                                <div class="text-sm font-bold text-[#0A192F] uppercase mb-1 truncate"><?= $ticket['event_name'] ?></div>
+                                <div class="text-xs font-medium text-[#64748B] mb-6"><?= $ticket['event_location'] ?></div>
+                                <div class="mt-auto flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
+                                    <span class="text-lg font-bold">£<?= number_format($ticket['selling_price'], 2) ?></span>
+                                    <a href="pages/checkout.php?id=<?= $ticket['id'] ?>" class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold uppercase hover:bg-[#0041CC]">Buy</a>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <button class="nav-btn btn-right js-next"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </section>
             <?php endif; ?>
@@ -139,37 +132,47 @@ function getTierLabel($pts) {
             $cat_list = ['Academic and Careers', 'Society', 'Sports', 'Club Night', 'Other'];
             foreach ($cat_list as $c_title):
                 $tickets = getCategoryTickets($conn, $c_title);
-                if ($tickets && $tickets->num_rows > 0): ?>
-                <section class="js-slider-section">
-                    <h2 class="text-2xl font-bold text-[#0A192F] mb-6 tracking-tight uppercase"><?= $c_title ?></h2>
-                    <div class="slider-container">
-                        <button class="nav-btn btn-left js-prev" disabled><i data-lucide="chevron-left"></i></button>
-                        <div class="slider-track js-track">
-                            <?php while ($t = $tickets->fetch_assoc()): 
-                                $tier = getTierLabel($t['points'] ?? 0); ?>
-                                <div class="js-card">
-                                    <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 h-full flex flex-col hover:border-[#0052FF]/30 transition-all shadow-sm">
-                                        <div class="flex items-center gap-3 mb-4">
-                                            <div class="w-8 h-8 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-[10px] font-bold uppercase"><?= substr($t['username'] ?? 'S', 0, 1) ?></div>
-                                            <div class="flex flex-col">
-                                                <span class="text-xs font-bold text-[#0A192F]">@<?= $t['username'] ?></span>
-                                                <span class="text-[9px] font-bold <?= $tier['css'] ?> uppercase tracking-tighter"><?= $tier['text'] ?> Seller</span>
-                                            </div>
-                                        </div>
-                                        <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]"><i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i></div>
-                                        <div class="text-sm font-bold text-[#0A192F] uppercase mb-1 truncate"><?= $t['event_name'] ?></div>
-                                        <div class="text-xs font-medium text-[#64748B] mb-6"><?= $t['event_location'] ?></div>
-                                        <div class="mt-auto flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
-                                            <span class="text-lg font-bold">£<?= number_format($t['selling_price'], 2) ?></span>
-                                            <a href="pages/checkout.php?id=<?= $t['id'] ?>" class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold uppercase hover:bg-[#0041CC]">Buy</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endwhile; ?>
-                        </div>
-                        <button class="nav-btn btn-right js-next"><i data-lucide="chevron-right"></i></button>
+                if ($tickets && $tickets->num_rows > 0): 
+                    $row_id = 'row-' . strtolower(str_replace(' ', '-', $c_title));
+            ?>
+            <section class="mb-16">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-[#0A192F] tracking-tight uppercase"><?= $c_title ?></h2>
+                    <div class="flex gap-2">
+                        <button onclick="scrollRow('<?= $row_id ?>', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                        <button onclick="scrollRow('<?= $row_id ?>', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
                     </div>
-                </section>
+                </div>
+                <div id="<?= $row_id ?>" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
+                    <?php while ($t = $tickets->fetch_assoc()): 
+                        $tier = getTierLabel($t['points'] ?? 0); ?>
+                        <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] snap-start">
+                            <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 h-full flex flex-col hover:border-[#0052FF]/30 transition-all shadow-sm">
+                                <a href="profile/profile.php?id=<?= $t['seller_id'] ?>" class="flex items-center gap-3 mb-4 group/user">
+                                    <div class="w-8 h-8 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-[10px] font-bold uppercase overflow-hidden border border-transparent group-hover/user:border-[#0052FF] transition-all">
+                                        <?php if (!empty($t['profile_picture'])): ?>
+                                            <img src="uploads/profiles/<?= htmlspecialchars($t['profile_picture']) ?>" class="w-full h-full object-cover">
+                                        <?php else: ?>
+                                            <?= substr($t['username'] ?? 'S', 0, 1) ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-[#0A192F] group-hover/user:text-[#0052FF] transition-colors">@<?= $t['username'] ?></span>
+                                        <span class="text-[9px] font-bold <?= $tier['css'] ?> uppercase tracking-tighter"><?= $tier['text'] ?> Seller</span>
+                                    </div>
+                                </a>
+                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]"><i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i></div>
+                                <div class="text-sm font-bold text-[#0A192F] uppercase mb-1 truncate"><?= $t['event_name'] ?></div>
+                                <div class="text-xs font-medium text-[#64748B] mb-6"><?= $t['event_location'] ?></div>
+                                <div class="mt-auto flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
+                                    <span class="text-lg font-bold">£<?= number_format($t['selling_price'], 2) ?></span>
+                                    <a href="pages/checkout.php?id=<?= $t['id'] ?>" class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold uppercase hover:bg-[#0041CC]">Buy</a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+            </section>
             <?php endif; endforeach; ?>
         </div>
 
@@ -185,62 +188,14 @@ function getTierLabel($pts) {
 </div>
 
 <script>
+function scrollRow(rowId, direction) {
+    const row = document.getElementById(rowId);
+    const scrollAmount = row.clientWidth * 0.8; 
+    row.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
-    // Initialize the icons from the lucide library
     lucide.createIcons();
-
-    const sections = document.querySelectorAll('.js-slider-section');
-    const gap = 24;
-
-    sections.forEach(section => {
-        const track = section.querySelector('.js-track');
-        const cards = section.querySelectorAll('.js-card');
-        const nextBtn = section.querySelector('.js-next');
-        const prevBtn = section.querySelector('.js-prev');
-
-        // Check the screen width to decide how many cards to show
-        function getVisibleCount() {
-            if (window.innerWidth >= 1024) return 4;
-            if (window.innerWidth >= 768) return 2;
-            return 1;
-        }
-
-        // Recalculate card widths so 4 fit perfectly in the row
-        function updateLayout() {
-            const containerWidth = track.clientWidth;
-            const totalCards = cards.length;
-            const visibleCount = getVisibleCount();
-            let cardWidth;
-
-            if (totalCards <= visibleCount) {
-                const totalGap = gap * (totalCards - 1);
-                cardWidth = (containerWidth - totalGap) / totalCards;
-            } else {
-                const totalGap = gap * (visibleCount - 1);
-                cardWidth = (containerWidth - totalGap) / visibleCount;
-            }
-
-            cards.forEach(card => card.style.width = cardWidth + 'px');
-            updateButtons();
-        }
-
-        // Hide or show the navigation arrows based on scroll position
-        function updateButtons() {
-            const maxScroll = track.scrollWidth - track.clientWidth;
-            const scrollLeft = track.scrollLeft;
-
-            prevBtn.disabled = scrollLeft <= 5;
-            nextBtn.disabled = scrollLeft >= maxScroll - 5;
-        }
-
-        // Handle the smooth sliding when an arrow is clicked
-        nextBtn.addEventListener('click', () => track.scrollBy({ left: track.clientWidth, behavior: 'smooth' }));
-        prevBtn.addEventListener('click', () => track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }));
-
-        track.addEventListener('scroll', updateButtons);
-        window.addEventListener('resize', updateLayout);
-        updateLayout();
-    });
 });
 </script>
 

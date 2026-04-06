@@ -37,6 +37,8 @@ if ($user_id) {
 $event_name = $_POST['event_name'] ?? "Unknown Event";
 $location = $_POST['location'] ?? "Unknown Venue";
 $price = $_POST['selling_price'] ?? "0.00";
+$category = trim($_POST['category'] ?? 'other');
+$event_date = $_POST['event_date'] ?? "";
 
 include '../includes/header.php'; 
 ?>
@@ -95,7 +97,7 @@ include '../includes/header.php';
                     <div class="flex justify-between items-center pt-5 border-t border-[#F1F5F9]">
                         <span class="text-xl font-black text-[#0A192F]">£<?php echo number_format((float)$price, 2); ?></span>
                         <div class="h-8 px-4 bg-[#0052FF]/5 text-[#0052FF] text-[9px] flex items-center rounded-lg font-black uppercase tracking-widest border border-[#0052FF]/10">
-                            Preview
+                            Buy     
                         </div>
                     </div>
                 </div>
@@ -103,8 +105,11 @@ include '../includes/header.php';
                 <form action="../actions/finalise_listing.php" method="POST" class="mt-10 max-w-sm mx-auto">
                     <input type="hidden" name="event_name" value="<?php echo htmlspecialchars($event_name); ?>">
                     <input type="hidden" name="location" value="<?php echo htmlspecialchars($location); ?>">
-                    <input type="hidden" name="price" value="<?php echo $price; ?>">
-                    
+                    <input type="hidden" name="price" value="<?php echo htmlspecialchars($price); ?>">
+                    <input type="hidden" name="category" value="<?php echo htmlspecialchars($category); ?>">
+                    <input type="hidden" name="event_date" value="<?php echo htmlspecialchars($event_date); ?>">
+                    <input type="hidden" name="retail_price" value="<?php echo htmlspecialchars($_POST['retail_price'] ?? '0.00'); ?>">
+
                     <button type="submit" class="w-full py-5 bg-[#0052FF] text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-[#0A192F] transition-all shadow-xl">
                         Publish Ticket 
                     </button>
