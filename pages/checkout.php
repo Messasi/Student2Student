@@ -6,8 +6,9 @@ include '../includes/header.php';
 // Get the ticket ID from the URL (e.g., checkout.php?id=12)
 $ticket_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Fetch the specific ticket and the seller's username from the database
-$query = "SELECT t.*, u.username 
+
+// Fetch the specific ticket and the seller's details from the database
+$query = "SELECT t.*, u.username, u.profile_picture 
           FROM tickets t 
           JOIN users u ON t.seller_id = u.id 
           WHERE t.id = ? AND t.status = 'active' 
@@ -47,8 +48,12 @@ $seller_user = $ticket['username'];
                 
                 <div class="w-full max-w-[370px] bg-white border border-[#E2E8F0] rounded-[2rem] p-8 shadow-sm flex flex-col">
                     <div class="flex items-center gap-4 mb-6">
-                        <div class="w-10 h-10 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-xs font-bold uppercase">
-                            <?php echo substr($seller_user, 0, 1); ?>
+                       <div class="w-10 h-10 rounded-full bg-[#0A192F] flex items-center justify-center text-white text-xs font-bold uppercase overflow-hidden border border-[#E2E8F0]">
+                            <?php if (!empty($ticket['profile_picture'])): ?>
+                                <img src="../uploads/profiles/<?= htmlspecialchars($ticket['profile_picture']); ?>" class="w-full h-full object-cover">
+                            <?php else: ?>
+                                <?= substr($seller_user, 0, 1); ?>
+                            <?php endif; ?>
                         </div>
                         <div class="flex flex-col">
                             <span class="text-sm font-bold text-[#0A192F]">@<?php echo htmlspecialchars($seller_user); ?></span>

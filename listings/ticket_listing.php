@@ -1,12 +1,9 @@
 <?php 
-// This is the first page where a student puts in their Fatsoma link and uploads the ticket PDF
-// We need the session to start immediately so we can check if the user is logged in
 session_start();
 
 require_once '../config/database.php';
 require_once '../vendor/autoload.php'; 
 
-// We check if the student is logged in, and if not, we stop them right here
 if (!isset($_SESSION['user_id'])) {
     include '../includes/header.php';
     ?>
@@ -26,8 +23,6 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $error = null;
-
-// Every time the page loads for a logged-in user we clear out old ticket data to avoid confusion
 unset($_SESSION['scraped_ticket']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
@@ -36,109 +31,137 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
     $tmpPath      = $file['tmp_name'];
     $originalName = htmlspecialchars($file['name']);
     
-    // We check the file's actual type to make sure it is really a PDF and not just a renamed file
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime  = finfo_file($finfo, $tmpPath);
     finfo_close($finfo);
     
     if ($mime === 'application/pdf') {
         
-        // This generates a unique ID for the file to help us stop people from uploading the same ticket twice
+        // 1. Generate the unique fingerprint for this specific file
         $p_hash   = hash_file('sha256', $tmpPath);
-        $eventUrl = $_POST['event_url'] ?? '';
-        
-        // We check if the link provided is actually from the Fatsoma website
-        $isFatsoma = strpos($eventUrl, 'fatsoma.com') !== false;
+        $fileName = $p_hash . ".pdf"; 
+        $uploadDir = "../uploads/tickets/";
+        $destPath = $uploadDir . $fileName;
 
-        if ($isFatsoma) {
-            $scrapedMeta = ['name' => '', 'tiers' => [], 'venue' => '', 'date' => ''];
-            
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $eventUrl);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0');
-            $html = curl_exec($ch);
-            curl_close($ch);
+        // --- NEW DUPLICATE CHECK START ---
+        // Check if this exact file hash already exists in our database
+        $check_stmt = $conn->prepare("SELECT id FROM tickets WHERE pdf_hash = ? OR pdf_hash = ? LIMIT 1");
+        $pure_hash = $p_hash; // checking both with and without .pdf just in case
+        $check_stmt->bind_param("ss", $pure_hash, $fileName);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
 
-            if ($html) {
-                $dom = new DOMDocument();
-                @$dom->loadHTML($html);
-                $xpath   = new DOMXPath($dom);
-                $scripts = $xpath->query('//script[@type="application/ld+json"]');
+        if ($check_result->num_rows > 0) {
+            $error = "This is a duplicated ticket. It has already been listed on the marketplace.";
+        } else {
+            // --- NEW DUPLICATE CHECK END ---
+
+            // Ensure the directory exists
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            if (move_uploaded_file($tmpPath, $destPath)) {
                 
-                foreach ($scripts as $script) {
-                    $json = json_decode($script->nodeValue, true);
-                    if (is_array($json) && isset($json['@type']) && $json['@type'] === 'Event') {
-                        $scrapedMeta['name']  = $json['name'] ?? '';
-                        $scrapedMeta['venue'] = $json['location']['name'] ?? '';
-                        $scrapedMeta['date']  = $json['startDate'] ?? '';
+                $eventUrl = $_POST['event_url'] ?? '';
+                $isFatsoma = strpos($eventUrl, 'fatsoma.com') !== false;
+
+                if ($isFatsoma) {
+                    $scrapedMeta = ['name' => '', 'tiers' => [], 'venue' => '', 'date' => ''];
+                    
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $eventUrl);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0');
+                    $html = curl_exec($ch);
+                    curl_close($ch);
+
+                    if ($html) {
+                        $dom = new DOMDocument();
+                        @$dom->loadHTML($html);
+                        $xpath   = new DOMXPath($dom);
+                        $scripts = $xpath->query('//script[@type="application/ld+json"]');
                         
-                        if (isset($json['offers'])) {
-                            $offers = isset($json['offers'][0]) ? $json['offers'] : [$json['offers']];
-                            foreach ($offers as $o) {
-                                if (isset($o['name'])) {
-                                    $scrapedMeta['tiers'][] = ['name' => $o['name'], 'price' => $o['price'] ?? '0.00'];
+                        foreach ($scripts as $script) {
+                            $json = json_decode($script->nodeValue, true);
+                            if (is_array($json) && isset($json['@type']) && $json['@type'] === 'Event') {
+                                $scrapedMeta['name']  = $json['name'] ?? '';
+                                $scrapedMeta['venue'] = $json['location']['name'] ?? '';
+                                $scrapedMeta['date']  = $json['startDate'] ?? '';
+                                
+                                if (isset($json['offers'])) {
+                                    $offers = isset($json['offers'][0]) ? $json['offers'] : [$json['offers']];
+                                    foreach ($offers as $o) {
+                                        if (isset($o['name'])) {
+                                            $scrapedMeta['tiers'][] = ['name' => $o['name'], 'price' => $o['price'] ?? '0.00'];
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            }
 
-            try {
-                $parser  = new \Smalot\PdfParser\Parser();
-                $pdf     = $parser->parseFile($tmpPath);
-                $pdfText = $pdf->getText();
-                
-                $stripEmojis = function(string $str): string {
-                    $str = preg_replace('/[^\x{0020}-\x{007E}\x{00A0}-\x{024F}]/u', '', $str);
-                    return trim(preg_replace('/\s+/', ' ', $str));
-                };
+                    try {
+                        $parser  = new \Smalot\PdfParser\Parser();
+                        $pdf     = $parser->parseFile($destPath);
+                        $pdfText = $pdf->getText();
+                        
+                        $stripEmojis = function(string $str): string {
+                            $str = preg_replace('/[^\x{0020}-\x{007E}\x{00A0}-\x{024F}]/u', '', $str);
+                            return trim(preg_replace('/\s+/', ' ', $str));
+                        };
 
-                $cleanPdfText    = $stripEmojis(preg_replace('/\s+/', ' ', $pdfText));
-                $cleanTargetName = $stripEmojis(preg_replace('/\s+/', ' ', $scrapedMeta['name']));
+                        $cleanPdfText    = $stripEmojis(preg_replace('/\s+/', ' ', $pdfText));
+                        $cleanTargetName = $stripEmojis(preg_replace('/\s+/', ' ', $scrapedMeta['name']));
 
-                $nameMatch = (!empty($cleanTargetName) && strpos($cleanPdfText, $cleanTargetName) !== false);
-                
-                if ($nameMatch) {
-                    $matchedPrice = '0.00';
-                    foreach ($scrapedMeta['tiers'] as $tier) {
-                        if (strpos($cleanPdfText, $tier['name']) !== false) {
-                            $matchedPrice = $tier['price'];
-                            break;
+                        $nameMatch = (!empty($cleanTargetName) && strpos($cleanPdfText, $cleanTargetName) !== false);
+                        
+                        if ($nameMatch) {
+                            $matchedPrice = '0.00';
+                            foreach ($scrapedMeta['tiers'] as $tier) {
+                                if (strpos($cleanPdfText, $tier['name']) !== false) {
+                                    $matchedPrice = $tier['price'];
+                                    break;
+                                }
+                            }
+
+                            $_SESSION['scraped_ticket'] = [
+                                'event_name'   => $scrapedMeta['name'],
+                                'venue'        => $scrapedMeta['venue'],
+                                'event_date'   => $scrapedMeta['date'],
+                                'retail_price' => $matchedPrice,
+                                'is_verified'  => true,
+                                'upload_name'  => $originalName,
+                                'p_hash'       => $fileName 
+                            ];
+                            
+                            session_write_close();
+                            header("Location: ticket_details.php");
+                            exit();
+                        } else {
+                            unlink($destPath);
+                            $error = "Verification failed: The PDF and link do not match.";
                         }
+                    } catch (Exception $e) {
+                        unlink($destPath);
+                        $error = "Could not read PDF. Please use the original file.";
                     }
-
+                } else {
                     $_SESSION['scraped_ticket'] = [
-                        'event_name'   => $scrapedMeta['name'],
-                        'venue'        => $scrapedMeta['venue'],
-                        'event_date'   => $scrapedMeta['date'],
-                        'retail_price' => $matchedPrice,
-                        'is_verified'  => true,
-                        'upload_name'  => $originalName,
-                        'p_hash'       => $p_hash
+                        'event_name'   => '', 'venue' => '', 'event_date' => '', 'retail_price' => '0.00',
+                        'is_verified'  => false, 'upload_name' => $originalName, 'p_hash' => $fileName,
+                        'manual_msg'   => "Manual entry required for this provider."
                     ];
-                    
                     session_write_close();
                     header("Location: ticket_details.php");
                     exit();
-                } else {
-                    $error = "Verification failed: The PDF and link do not match.";
                 }
-            } catch (Exception $e) {
-                $error = "Could not read PDF. Please use the original file.";
+            } else {
+                $error = "Failed to save the ticket file to the server.";
             }
-        } else {
-            $_SESSION['scraped_ticket'] = [
-                'event_name'   => '', 'venue' => '', 'event_date' => '', 'retail_price' => '0.00',
-                'is_verified'  => false, 'upload_name' => $originalName, 'p_hash' => $p_hash,
-                'manual_msg'   => "Manual entry required for this provider."
-            ];
-            session_write_close();
-            header("Location: ticket_details.php");
-            exit();
-        }
+        } // End of duplicate check else
+        $check_stmt->close();
     } else {
         $error = "Please upload a valid PDF file.";
     }
@@ -146,10 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
 
 include '../includes/header.php'; 
 ?>
-
 <div class="min-h-screen bg-[#F8FAFC] pb-24">
     <div class="max-w-2xl mx-auto px-6 pt-12">
-        
         <div class="flex items-center justify-between mb-10">
             <a href="javascript:history.back()" class="text-sm font-bold text-[#64748B] no-underline hover:text-[#0052FF]">Back</a>
             <div class="flex gap-2">

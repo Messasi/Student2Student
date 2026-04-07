@@ -14,6 +14,6 @@ if (isset($_COOKIE[session_name()])) {
 session_destroy();
 
 // Redirect to homepage
-header('Location: /student2student/index.php');
+header('Location: /student2student/auth/login.php');
 exit;
 ?>
