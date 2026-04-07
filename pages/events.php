@@ -2,7 +2,7 @@
 require_once '../config/database.php';
 include '../includes/header.php'; 
 
-// Fetch and group tickets by event name, count availability, and get the lowest price
+// Database logic remains exactly the same
 $query = "SELECT 
             event_name, 
             event_location, 
@@ -16,27 +16,26 @@ $query = "SELECT
 
 $result = $conn->query($query);
 
-// Organize events into arrays by category
 $events = [
-    'sports' => [],
-    'club' => [],
-    'society' => [],
+    'sports'   => [],
+    'club'     => [],
+    'society'  => [],
     'academic' => []
 ];
 
-while ($row = $result->fetch_assoc()) {
-    // Map database categories to section IDs
-    $cat = strtolower($row['category']);
-    if (strpos($cat, 'club') !== false) $events['club'][] = $row;
-    elseif (strpos($cat, 'sports') !== false) $events['sports'][] = $row;
-    elseif (strpos($cat, 'society') !== false) $events['society'][] = $row;
-    elseif (strpos($cat, 'academic') !== false) $events['academic'][] = $row;
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $cat = strtolower($row['category']);
+        if (strpos($cat, 'club') !== false) $events['club'][] = $row;
+        elseif (strpos($cat, 'sports') !== false) $events['sports'][] = $row;
+        elseif (strpos($cat, 'society') !== false) $events['society'][] = $row;
+        elseif (strpos($cat, 'academic') !== false) $events['academic'][] = $row;
+    }
 }
 
-// Helper function to render a row (prevents repeating HTML)
-function renderEventRow($eventList, $icon, $rowId) {
+function renderEventRow($eventList, $icon) {
     if (empty($eventList)) {
-        echo '<p class="text-[#64748B] font-bold uppercase text-[10px] tracking-widest ml-2">No active events in this category.</p>';
+        echo '<p class="text-[#64748B] font-black uppercase text-[10px] tracking-widest ml-2 opacity-50">No active events found.</p>';
         return;
     }
     foreach ($eventList as $event) {
@@ -52,7 +51,7 @@ function renderEventRow($eventList, $icon, $rowId) {
                     <span class="text-[9px] font-black text-[#94A3B8] uppercase">From £<?php echo number_format($event['min_price'], 2); ?></span>
                     <span class="text-xl font-black text-[#0A192F] tracking-tighter"><?php echo $event['ticket_count']; ?> Tickets</span>
                 </div>
-                <a href="view_event_tickets.php?event=<?php echo urlencode($event['event_name']); ?>" class="h-11 px-5 bg-[#0052FF] text-white text-[10px] flex items-center rounded-xl font-black uppercase tracking-widest hover:bg-[#0A192F] transition-colors shadow-lg">View</a>
+                <a href="view_event_tickets.php?event=<?php echo urlencode($event['event_name']); ?>" class="h-11 px-5 bg-[#0052FF] text-white text-[10px] flex items-center rounded-xl font-black uppercase tracking-widest hover:bg-[#0A192F] transition-colors shadow-lg shadow-[#0052FF]/10 no-underline">View</a>
             </div>
         </div>
         <?php
@@ -60,100 +59,100 @@ function renderEventRow($eventList, $icon, $rowId) {
 }
 ?>
 
-<div class="bg-[#F5F8FA] min-h-screen pb-24">
+<div class="bg-[#F5F8FA] min-h-screen pb-24 font-sans">
     <div class="pt-20 pb-12 px-6 lg:px-[60px]">
         <div class="max-w-4xl">
-            <h1 class="text-6xl md:text-7xl font-black text-[#0A192F] tracking-tighter uppercase leading-[0.9] mb-6">
-                Discover <br> Events
-            </h1>
-            <p class="text-lg text-[#64748B] font-bold max-w-xl">
-                Find official student union events, society socials, and verified ticket resales.
-            </p>
+            <h1 class="text-6xl md:text-7xl font-black text-[#0A192F] tracking-tighter uppercase leading-[0.9] mb-6">Discover <br> Events</h1>
+            <p class="text-lg text-[#64748B] font-bold max-w-xl">Find official student union events, society socials, and verified ticket resales.</p>
         </div>
     </div>
     
     <div class="px-6 lg:px-[60px] flex gap-3 overflow-x-auto pb-16 scrollbar-hide">
-        <button onclick="filterEvents('all', this)" class="filter-btn px-8 py-4 bg-[#0052FF] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transition-all">All Events</button>
-        <button onclick="filterEvents('club', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Club Nights</button>
-        <button onclick="filterEvents('sports', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Sports</button>
-        <button onclick="filterEvents('society', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Societies</button>
-        <button onclick="filterEvents('academic', this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Academic & Careers</button>
+        <button data-filter="all" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-[#0052FF] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#0052FF]/20 transition-all">All Events</button>
+        <button data-filter="club" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Club Nights</button>
+        <button data-filter="sports" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Sports</button>
+        <button data-filter="society" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Societies</button>
+        <button data-filter="academic" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Academic & Careers</button>
     </div>
 
-    <section id="section-sports" class="event-section mb-20 px-6 lg:px-[60px]">
+    <section data-category="sports" class="event-section mb-20 px-6 lg:px-[60px]">
         <div class="flex items-center justify-between mb-8">
             <h2 class="text-2xl font-black text-[#0A192F] tracking-tighter uppercase">Sports & Varsity</h2>
             <div class="flex gap-2">
-                <button onclick="scrollRow('row-sports', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
-                <button onclick="scrollRow('row-sports', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-sports', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-sports', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center hover:text-[#0052FF] shadow-sm transition-colors"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
             </div>
         </div>
         <div id="row-sports" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php renderEventRow($events['sports'], 'trophy', 'row-sports'); ?>
+            <?php renderEventRow($events['sports'], 'trophy'); ?>
         </div>
     </section>
 
-    <section id="section-club" class="event-section mb-20 px-6 lg:px-[60px]">
+    <section data-category="club" class="event-section mb-20 px-6 lg:px-[60px]">
         <div class="flex items-center justify-between mb-8">
             <h2 class="text-2xl font-black text-[#0A192F] tracking-tighter uppercase">Club Nights</h2>
             <div class="flex gap-2">
-                <button onclick="scrollRow('row-club', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
-                <button onclick="scrollRow('row-club', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-club', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-club', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm transition-colors"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
             </div>
         </div>
         <div id="row-club" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php renderEventRow($events['club'], 'music', 'row-club'); ?>
+            <?php renderEventRow($events['club'], 'music'); ?>
         </div>
     </section>
 
-    <section id="section-society" class="event-section mb-20 px-6 lg:px-[60px]">
+    <section data-category="society" class="event-section mb-20 px-6 lg:px-[60px]">
         <div class="flex items-center justify-between mb-8">
             <h2 class="text-2xl font-black text-[#0A192F] tracking-tighter uppercase">Society Events</h2>
             <div class="flex gap-2">
-                <button onclick="scrollRow('row-society', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
-                <button onclick="scrollRow('row-society', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-society', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-society', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm transition-colors"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
             </div>
         </div>
         <div id="row-society" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php renderEventRow($events['society'], 'users', 'row-society'); ?>
+            <?php renderEventRow($events['society'], 'users'); ?>
         </div>
     </section>
 
-    <section id="section-academic" class="event-section mb-20 px-6 lg:px-[60px]">
+    <section data-category="academic" class="event-section mb-20 px-6 lg:px-[60px]">
         <div class="flex items-center justify-between mb-8">
             <h2 class="text-2xl font-black text-[#0A192F] tracking-tighter uppercase">Academic & Careers</h2>
             <div class="flex gap-2">
-                <button onclick="scrollRow('row-academic', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
-                <button onclick="scrollRow('row-academic', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-academic', 'left')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>
+                <button onclick="scrollRow('row-academic', 'right')" class="w-10 h-10 rounded-full border border-[#E2E8F0] bg-white flex items-center justify-center shadow-sm transition-colors"><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
             </div>
         </div>
         <div id="row-academic" class="flex gap-6 overflow-x-auto scroll-smooth pb-4 scrollbar-hide snap-x snap-mandatory">
-            <?php renderEventRow($events['academic'], 'graduation-cap', 'row-academic'); ?>
+            <?php renderEventRow($events['academic'], 'graduation-cap'); ?>
         </div>
     </section>
 </div>
 
 <script>
-function filterEvents(category, btn) {
+/**
+ * Much easier way: Looks at data-filter on button and data-category on section
+ */
+function filterEvents(btn) {
+    const category = btn.getAttribute('data-filter');
+
+    // Reset button styles
     document.querySelectorAll('.filter-btn').forEach(button => {
-        button.classList.remove('bg-[#0052FF]', 'text-white', 'shadow-xl');
-        button.classList.add('bg-white', 'text-[#64748B]');
+        button.classList.remove('bg-[#0052FF]', 'text-white', 'shadow-xl', 'shadow-[#0052FF]/20');
+        button.classList.add('bg-white', 'text-[#64748B]', 'border-[#E2E8F0]');
     });
-    btn.classList.add('bg-[#0052FF]', 'text-white', 'shadow-xl');
-    btn.classList.remove('bg-white', 'text-[#64748B]');
+    
+    // Highlight active button
+    btn.classList.add('bg-[#0052FF]', 'text-white', 'shadow-xl', 'shadow-[#0052FF]/20');
+    btn.classList.remove('bg-white', 'text-[#64748B]', 'border-[#E2E8F0]');
 
-    const sections = {
-        sports: document.getElementById('section-sports'),
-        club: document.getElementById('section-club'),
-        society: document.getElementById('section-society'),
-        academic: document.getElementById('section-academic')
-    };
-
-    Object.keys(sections).forEach(key => {
-        if (category === 'all' || category === key) {
-            sections[key].style.display = 'block';
+    // Filter sections by data attribute
+    document.querySelectorAll('.event-section').forEach(section => {
+        const sectionCat = section.getAttribute('data-category');
+        
+        if (category === 'all' || category === sectionCat) {
+            section.style.display = 'block';
         } else {
-            sections[key].style.display = 'none';
+            section.style.display = 'none';
         }
     });
 }
