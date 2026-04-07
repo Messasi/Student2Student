@@ -106,7 +106,7 @@ $seller_user = $ticket['username'];
             </div>
 
             <div class="mt-16 max-w-xl text-center">
-                <p class="text-sm text-[#64748B] font-bold leading-relaxed italic opacity-80 uppercase tracking-tight">
+                <p class="text-sm text-[#64748B] font-bold leading-relaxed opacity-80 uppercase tracking-tight">
                     The ticket will be available in your dashboard immediately after payment.
                 </p>
             </div>
