@@ -66,7 +66,7 @@ $active_listings = $listings_stmt->get_result();
             
             <div class="flex flex-col md:flex-row items-center justify-between gap-10 relative z-10">
                 <a href="profile.php?id=<?= $profile_id ?>" class="flex flex-col md:flex-row items-center gap-8 group/user transition-transform hover:scale-[1.01]">
-                    <div class="w-28 h-28 bg-white text-[#0A192F] rounded-full uppercase flex items-center justify-center text-4xl font-black shadow-lg border-4 border-white/10 overflow-hidden group-hover/user:border-[#0052FF] transition-all">
+                    <div class="w-28 h-28 bg-white text-[#0A192F] rounded-full uppercase flex items-center justify-center text-4xl font-black shadow-lg border-4 border-white/10 overflow-hidden  transition-all">
                         <?php if (!empty($user['profile_picture'])): ?>
                             <img src="../uploads/profiles/<?= htmlspecialchars($user['profile_picture']); ?>" class="w-full h-full object-cover">
                         <?php else: ?>
@@ -76,7 +76,7 @@ $active_listings = $listings_stmt->get_result();
                     
                     <div class="text-center md:text-left">
                         <div class="flex flex-col md:flex-row md:items-center gap-4 mb-3">
-                            <h1 class="text-4xl lg:text-5xl font-black tracking-tighter uppercase group-hover/user:text-[#0052FF] transition-colors">
+                            <h1 class="text-4xl lg:text-5xl font-black tracking-tighter uppercase transition-colors">
                                 <?= htmlspecialchars($user['username']); ?>
                             </h1>
                             <div class="flex items-center gap-2 px-3 py-1 rounded-full border <?= $badge_color; ?> w-fit mx-auto md:mx-0">

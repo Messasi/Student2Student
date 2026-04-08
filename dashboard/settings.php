@@ -30,9 +30,6 @@ $stmt->close();
                         <a href="#account" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#64748B] hover:bg-gray-100 rounded-xl transition-all">
                             <i data-lucide="settings" class="w-5 h-5"></i> Account Details
                         </a>
-                        <a href="#bank" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#64748B] hover:bg-gray-100 rounded-xl transition-all">
-                            <i data-lucide="landmark" class="w-5 h-5"></i> Bank Details
-                        </a>
                         <a href="#security" class="nav-link flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#64748B] hover:bg-gray-100 rounded-xl transition-all">
                             <i data-lucide="shield-check" class="w-5 h-5"></i> Password & Security
                         </a>
@@ -94,29 +91,6 @@ $stmt->close();
                             </div>
                         </div>
                         <button type="submit" class="bg-[#0052FF] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#0041CC] transition-all">Update Emails</button>
-                    </form>
-                </section>
-
-                <section id="bank" class="bg-white rounded-3xl p-8 shadow-sm border border-[#E2E8F0]">
-                    <div class="flex items-center gap-3 mb-6">
-                        <h3 class="text-xl font-bold text-[#0A192F]">Bank Details</h3>
-                    </div>
-                    <form action="update_bank.php" method="POST" class="space-y-6">
-                        <div class="space-y-2">
-                            <label class="text-sm font-bold text-[#0A192F]">Account Holder Name</label>
-                            <input type="text" name="acc_name" placeholder="John Smith" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-3 focus:outline-none">
-                        </div>
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <div class="space-y-2">
-                                <label class="text-sm font-bold text-[#0A192F]">Sort Code</label>
-                                <input type="text" name="sort_code" placeholder="00-00-00" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-3">
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-sm font-bold text-[#0A192F]">Account Number</label>
-                                <input type="text" name="acc_num" placeholder="12345678" class="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl px-4 py-3">
-                            </div>
-                        </div>
-                        <button type="submit" class="bg-[#0052FF] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#0041CC] transition-all">Save Bank Details</button>
                     </form>
                 </section>
 
@@ -186,24 +160,6 @@ $stmt->close();
                                 Student2Student is a community platform. We charge a minimal 5% service fee on successful sales to maintain the platform and secure payments.
                             </div>
                         </div>
-
-                        <div class="group border-b border-[#E2E8F0] pb-4">
-                            <button class="w-full flex justify-between items-center text-left py-2" onclick="this.nextElementSibling.classList.toggle('hidden')">
-                                <span class="font-bold text-[#0A192F]">Is my bank information secure?</span>
-                                <i data-lucide="chevron-down" class="w-4 h-4 text-[#64748B]"></i>
-                            </button>
-                            <div class="hidden mt-2 text-sm text-[#64748B] leading-relaxed">
-                                Yes. We do not store your full bank details on our local servers. All financial data is handled by our encrypted payment processor to ensure maximum security.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 p-6 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0]">
-                        <p class="text-sm font-bold text-[#0A192F] mb-2">Still need help?</p>
-                        <p class="text-xs text-[#64748B] mb-4">Our support team is available for any specific issues regarding transactions.</p>
-                        <a href="mailto:support@student2student.ac.uk" class="inline-flex items-center gap-2 text-[#0052FF] text-sm font-bold hover:underline">
-                            <i data-lucide="mail" class="w-4 h-4"></i> Contact Support
-                        </a>
                     </div>
                 </section>
             </main>
