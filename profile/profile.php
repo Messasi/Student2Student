@@ -52,7 +52,7 @@ $sold_stmt->bind_param("i", $profile_id);
 $sold_stmt->execute();
 $sold_count = $sold_stmt->get_result()->fetch_assoc()['total'];
 
-$listings_stmt = $conn->prepare("SELECT * FROM tickets WHERE seller_id = ? AND status = 'active' AND event_date >= NOW() ORDER BY created_at DESC");
+$listings_stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.seller_id = ? AND t.status = 'active' AND t.event_date >= NOW() ORDER BY t.created_at DESC");
 $listings_stmt->bind_param("i", $profile_id);
 $listings_stmt->execute();
 $active_listings = $listings_stmt->get_result();
@@ -112,8 +112,14 @@ $active_listings = $listings_stmt->get_result();
                     <?php while ($listing = $active_listings->fetch_assoc()): ?>
                         <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] snap-start">
                             <div class="bg-white border border-[#E2E8F0] rounded-2xl p-6 h-full flex flex-col hover:border-[#0052FF]/30 transition-all shadow-sm hover:shadow-xl">
-                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center relative border border-[#F1F5F9]">
-                                    <i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i>
+                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 relative border border-[#F1F5F9] overflow-hidden">
+                                    <?php if (!empty($listing['event_image'])): ?>
+                                        <img src="<?= htmlspecialchars($listing['event_image']) ?>" class="absolute inset-0 w-full h-full object-cover">
+                                    <?php else: ?>
+                                        <div class="flex items-center justify-center w-full h-full">
+                                            <i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i>
+                                        </div>
+                                    <?php endif; ?>
                                     <span class="absolute top-3 left-3 bg-white px-2 py-1 rounded-md text-[9px] font-black uppercase shadow-sm border border-[#E2E8F0]">
                                         <?= htmlspecialchars($listing['category']); ?>
                                     </span>
@@ -136,7 +142,6 @@ $active_listings = $listings_stmt->get_result();
 </div>
 
 <script>
-// Simple scroll function to match your other pages
 function scrollRow(rowId, direction) {
     const row = document.getElementById(rowId);
     const scrollAmount = row.clientWidth * 0.8; 

@@ -16,6 +16,9 @@ $category = trim($_POST['category'] ?? '');
 $raw_date = trim($_POST['event_date'] ?? '');
 $retail_price = isset($_POST['retail_price']) ? (float) $_POST['retail_price'] : 0.00;
 
+// --- ADDED THIS LINE TO CATCH THE IMAGE URL ---
+$event_image = trim($_POST['event_image'] ?? '');
+
 if ($category === '') {
     $category = 'other';
 }
@@ -45,6 +48,7 @@ if (!empty($raw_date)) {
         : date('Y-m-d 23:59:59');
 }
 
+// --- UPDATED SQL TO INCLUDE event_image ---
 $sql = "INSERT INTO tickets (
     seller_id,
     event_name,
@@ -54,8 +58,9 @@ $sql = "INSERT INTO tickets (
     original_price,
     selling_price,
     pdf_hash,
+    event_image,
     status
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')";
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')";
 
 $stmt = $conn->prepare($sql);
 
@@ -65,8 +70,9 @@ if (!$stmt) {
     exit();
 }
 
+// --- UPDATED BIND_PARAM: Added 's' for the image URL ---
 $stmt->bind_param(
-    "issssdds",
+    "issssddss",
     $user_id,
     $event_name,
     $event_date,
@@ -74,7 +80,8 @@ $stmt->bind_param(
     $category,
     $retail_price,
     $selling_price,
-    $pdf_hash
+    $pdf_hash,
+    $event_image
 );
 
 if ($stmt->execute()) {

@@ -3,30 +3,22 @@
 require_once 'config/database.php';
 include 'includes/header.php';
 
-// Store the current time to filter out past events
 $today = date('Y-m-d H:i:s');
-// Get the current user ID from the session if they are logged in
 $user_id = $_SESSION['user_id'] ?? null;
-
-// Create an empty array to hold our final recommended tickets
 $recommended_tickets = [];
 
-// Check if the user is logged in before finding recommendations
 if ($user_id) {
-    // Get the user click data and points from the database
     $user_stmt = $conn->prepare("SELECT points, pref_club_clicks, pref_sports_clicks, pref_society_clicks, pref_gig_clicks FROM users WHERE id = ?");
     $user_stmt->bind_param("i", $user_id);
     $user_stmt->execute();
     $u_prof = $user_stmt->get_result()->fetch_assoc();
 
-    // Calculate total clicks to see if the user has a browsing history
     $total_clicks = (int)$u_prof['pref_club_clicks'] + (int)$u_prof['pref_sports_clicks'] + (int)$u_prof['pref_society_clicks'] + (int)$u_prof['pref_gig_clicks'];
 
-    // Show a mix of categories if the user has never clicked a ticket
     if ($total_clicks == 0) {
         $cats = ['Club Night', 'Society', 'Sports', 'Academic and Careers', 'Other'];
         foreach ($cats as $c) {
-            // Updated query to include profile_picture
+            // Updated query to include event_image
             $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 3");
             $stmt->bind_param("ss", $c, $today);
             $stmt->execute();
@@ -34,28 +26,25 @@ if ($user_id) {
             while ($row = $res->fetch_assoc()) { $recommended_tickets[] = $row; }
         }
     } else {
-        // Find tickets based on seller ranks for users with click history
         $slots = ["gold" => "u.points >= 500", "silver" => "u.points BETWEEN 100 AND 499", "bronze" => "u.points BETWEEN 10 AND 99", "new" => "u.points < 10"];
         foreach ($slots as $type => $condition) {
             $order = ($type == 'new') ? "t.created_at DESC" : "u.points DESC";
-            // Updated query to include profile_picture
+            // Updated query to include event_image
             $res = $conn->query("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE $condition AND t.status = 'active' AND t.event_date >= '$today' ORDER BY $order LIMIT 3");
             while ($row = $res->fetch_assoc()) { $recommended_tickets[] = $row; }
         }
     }
 }
 
-// Function to fetch up to 20 tickets for each specific category row
 function getCategoryTickets($conn, $cat_name) {
     $now = date('Y-m-d H:i:s');
-    // Updated query to include profile_picture
+    // Updated query to include event_image
     $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 20");
     $stmt->bind_param("ss", $cat_name, $now);
     $stmt->execute();
     return $stmt->get_result();
 }
 
-// Logic to choose the correct colour and text for the seller tier
 function getTierLabel($pts) {
     if ($pts >= 500) return ['text' => 'Gold', 'css' => 'text-yellow-600'];
     if ($pts >= 100) return ['text' => 'Silver', 'css' => 'text-slate-500'];
@@ -114,9 +103,17 @@ function getTierLabel($pts) {
                                         <span class="text-[9px] font-bold <?= $tier['css'] ?> uppercase tracking-tighter"><?= $tier['text'] ?> Seller</span>
                                     </div>
                                 </a>
-                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]"><i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i></div>
+
+                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9] overflow-hidden">
+                                    <?php if (!empty($ticket['event_image'])): ?>
+                                        <img src="<?= htmlspecialchars($ticket['event_image']) ?>" class="w-full h-full object-cover">
+                                    <?php else: ?>
+                                        <i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i>
+                                    <?php endif; ?>
+                                </div>
+
                                 <div class="text-sm font-bold text-[#0A192F] uppercase mb-1 truncate"><?= $ticket['event_name'] ?></div>
-                                <div class="text-xs font-medium text-[#64748B] mb-6"><?= $ticket['event_location'] ?></div>
+                                <div class="text-xs font-medium text-[#64748B] mb-6 uppercase tracking-tight"><?= $ticket['event_location'] ?></div>
                                 <div class="mt-auto flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
                                     <span class="text-lg font-bold">£<?= number_format($ticket['selling_price'], 2) ?></span>
                                     <a href="pages/checkout.php?id=<?= $ticket['id'] ?>" class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold uppercase hover:bg-[#0041CC]">Buy</a>
@@ -161,9 +158,17 @@ function getTierLabel($pts) {
                                         <span class="text-[9px] font-bold <?= $tier['css'] ?> uppercase tracking-tighter"><?= $tier['text'] ?> Seller</span>
                                     </div>
                                 </a>
-                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9]"><i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i></div>
+
+                                <div class="w-full aspect-video bg-[#F8FAFC] rounded-xl mb-4 flex items-center justify-center border border-[#F1F5F9] overflow-hidden">
+                                    <?php if (!empty($t['event_image'])): ?>
+                                        <img src="<?= htmlspecialchars($t['event_image']) ?>" class="w-full h-full object-cover">
+                                    <?php else: ?>
+                                        <i data-lucide="ticket" class="w-8 h-8 text-[#CBD5E1]"></i>
+                                    <?php endif; ?>
+                                </div>
+
                                 <div class="text-sm font-bold text-[#0A192F] uppercase mb-1 truncate"><?= $t['event_name'] ?></div>
-                                <div class="text-xs font-medium text-[#64748B] mb-6"><?= $t['event_location'] ?></div>
+                                <div class="text-xs font-medium text-[#64748B] mb-6 uppercase tracking-tight"><?= $t['event_location'] ?></div>
                                 <div class="mt-auto flex justify-between items-center pt-4 border-t border-[#F1F5F9]">
                                     <span class="text-lg font-bold">£<?= number_format($t['selling_price'], 2) ?></span>
                                     <a href="pages/checkout.php?id=<?= $t['id'] ?>" class="h-8 px-4 bg-[#0052FF] text-white text-xs flex items-center rounded-lg font-bold uppercase hover:bg-[#0041CC]">Buy</a>
