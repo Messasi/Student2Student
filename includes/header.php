@@ -60,7 +60,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                             <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-2xl border border-[#E2E8F0] shadow-xl z-50 overflow-hidden transition-all">
                                 <div class="py-2">
                                     <a href="/student2student/profile/profile.php" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#0A192F] hover:bg-[#F8FAFC] transition-colors no-underline">
-                                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#64748B]"></i>
+                                        <i data-lucide="user-round" class="w-4 h-4 text-[#64748B]"></i>
                                         Profile 
                                     </a>
                                     <a href="/student2student/dashboard/dashboard.php" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#0A192F] hover:bg-[#F8FAFC] transition-colors no-underline">
