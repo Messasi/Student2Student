@@ -1,5 +1,4 @@
 <?php 
-
 session_start();
 
 require_once '../config/database.php';
@@ -26,6 +25,8 @@ $event_date   = $scraped['event_date']   ?? '';
 $retail_price = (float)($scraped['retail_price'] ?? 0);
 $manual_msg   = $scraped['manual_msg']   ?? '';
 $category = $scraped['category'] ?? '';
+// Pull the scraped image URL to pass it to the next page
+$event_image = $scraped['event_image'] ?? '';
 
 // This is where we set the rules for the selling price to stop people overcharging.
 // Students can sell for a small profit (40% max) or a big discount (50% min).
@@ -71,6 +72,8 @@ include '../includes/header.php';
         <div class="bg-white rounded-[2.5rem] shadow-sm border border-[#E2E8F0] overflow-hidden">
             <form id="listingForm" action="ticket_review.php" method="POST" class="p-12 space-y-10">
                 
+                <input type="hidden" name="event_image" value="<?php echo htmlspecialchars($event_image); ?>">
+
                 <div class="border-b border-[#F1F5F9] pb-8">
                     <h2 class="text-3xl font-black tracking-tighter text-[#0A192F]">Ticket Details</h2>
                     <p class="text-sm text-[#64748B] font-medium mt-1 uppercase tracking-tight">Step 2: Price & Policy Validation</p>
@@ -120,9 +123,7 @@ include '../includes/header.php';
                         <div class="space-y-2">
                             <label class="block text-[10px] font-black uppercase tracking-widest text-[#0052FF]">Your Selling Price (£)</label>
                             <?php 
-                                // We make sure the price displays correctly with two decimals like 0.00
                                 $display_val = number_format((float)$default_val, 2, '.', '');
-                                // If the ticket is verified as free, we lock the selling price so they cannot charge for it
                                 $selling_lock = ($isVerified && $retail_price <= 0) ? "readonly style='background-color: #F1F5F9; cursor: not-allowed;'" : "";
                             ?>
                             <input type="number" step="0.01" name="selling_price" id="selling_price" required
@@ -152,7 +153,6 @@ include '../includes/header.php';
 </div>
 
 <script>
-    // This script initialises the icons on the page
     lucide.createIcons();
 
     const retailInput = document.getElementById('retail_price');
@@ -160,19 +160,16 @@ include '../includes/header.php';
     const statusText = document.getElementById('price-status');
     const form = document.getElementById('listingForm');
 
-    // We pull the price limits from PHP so the JavaScript knows when to block a sale
     let maxLimit = <?php echo $max_allowed; ?>;
     let minLimit = <?php echo $min_allowed; ?>;
     const isVerified = <?php echo $isVerified ? 'true' : 'false'; ?>;
 
     function validatePrices() {
-        // If the field is locked because it is a free ticket, we don't need to validate it
         if (sellingInput.hasAttribute('readonly')) return;
 
         const retailVal = parseFloat(retailInput.value) || 0;
         const sellingVal = parseFloat(sellingInput.value) || 0;
 
-        // If the student is typing manually, we calculate the price limits on the fly
         if (!isVerified) {
             maxLimit = retailVal > 0 ? (retailVal * 1.40) : 9999;
             minLimit = retailVal > 0 ? (retailVal * 0.50) : 0;
@@ -184,7 +181,6 @@ include '../includes/header.php';
             }
         }
 
-        // We show a red warning if the price is too high or too low based on our rules
         if (retailVal > 0 && (sellingVal > maxLimit || sellingVal < minLimit)) {
             const errorMsg = sellingVal > maxLimit ? "ABOVE 40% CAP" : "BELOW 50% FLOOR";
             statusText.innerText = " BLOCKED: " + errorMsg;
@@ -197,7 +193,6 @@ include '../includes/header.php';
         }
     }
 
-    // We stop the form from being sent if the price breaks our fair-trade policy
     form.onsubmit = function(e) {
         const retailVal = parseFloat(retailInput.value) || 0;
         const sellingVal = parseFloat(sellingInput.value) || 0;
@@ -209,7 +204,6 @@ include '../includes/header.php';
         }
     };
 
-    // We listen for any changes in the price boxes to update the feedback live
     retailInput.addEventListener('input', validatePrices);
     sellingInput.addEventListener('input', validatePrices);
 </script>

@@ -1,39 +1,31 @@
 <?php 
-
-// We also pull the ticket details they just typed in from the previous form.
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 require_once '../config/database.php';
 
-// We look for the logged-in student's ID in the session.
+// Catch the scraped image from the session
+$scraped_image = $_SESSION['scraped_ticket']['event_image'] ?? null;
+
 $user_id = $_SESSION['user_id'] ?? null; 
 $username = "Student"; 
 $profile_pic = null;
 
 if ($user_id) {
-    // We fetch the username and profile picture filename from the users table.
     $stmt = $conn->prepare("SELECT username, profile_picture FROM users WHERE id = ? LIMIT 1");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
-    // If we find the student in the database, we use their real details.
     if ($user) {
         $username = $user['username'] ?? "Student";
         $profile_pic = $user['profile_picture'] ?? null;
-    } else {
-        // If they aren't found, we just show a generic "Student" name as a fallback.
-        $username = "Student";
-        $profile_pic = null;
     }
     $stmt->close();
 }
 
-// We grab the event info and selling price that was sent over from the last page.
 $event_name = $_POST['event_name'] ?? "Unknown Event";
 $location = $_POST['location'] ?? "Unknown Venue";
 $price = $_POST['selling_price'] ?? "0.00";
@@ -45,7 +37,6 @@ include '../includes/header.php';
 
 <div class="min-h-screen bg-[#F5F8FA] font-sans text-[#0A192F] pb-24">
     <div class="max-w-xl mx-auto px-6 pt-12 mb-8">
-        
         <div class="flex items-center justify-between mb-8">
             <a href="javascript:history.back()" class="flex items-center text-[#64748B] hover:text-[#0052FF] transition-all group">
                 <div class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-[#E2E8F0] mr-2 group-hover:border-[#0052FF] transition-colors">
@@ -87,12 +78,16 @@ include '../includes/header.php';
                         </div>
                     </div>
 
-                    <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-5 flex items-center justify-center border border-[#F1F5F9]">
-                        <i data-lucide="ticket" class="w-10 h-10 text-[#CBD5E1]"></i>
+                    <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-5 flex items-center justify-center border border-[#F1F5F9] overflow-hidden">
+                        <?php if (!empty($scraped_image)): ?>
+                            <img src="<?php echo htmlspecialchars($scraped_image); ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <i data-lucide="ticket" class="w-10 h-10 text-[#CBD5E1]"></i>
+                        <?php endif; ?>
                     </div>
 
                     <div class="text-md font-black text-[#0A192F] mb-1 uppercase truncate"><?php echo htmlspecialchars($event_name); ?></div>
-                    <div class="text-xs font-bold text-[#64748B] mb-6"><?php echo htmlspecialchars($location); ?></div>
+                    <div class="text-xs font-bold text-[#64748B] mb-6 uppercase tracking-tight"><?php echo htmlspecialchars($location); ?></div>
                     
                     <div class="flex justify-between items-center pt-5 border-t border-[#F1F5F9]">
                         <span class="text-xl font-black text-[#0A192F]">£<?php echo number_format((float)$price, 2); ?></span>
@@ -109,6 +104,8 @@ include '../includes/header.php';
                     <input type="hidden" name="category" value="<?php echo htmlspecialchars($category); ?>">
                     <input type="hidden" name="event_date" value="<?php echo htmlspecialchars($event_date); ?>">
                     <input type="hidden" name="retail_price" value="<?php echo htmlspecialchars($_POST['retail_price'] ?? '0.00'); ?>">
+                    
+                    <input type="hidden" name="event_image" value="<?php echo htmlspecialchars($scraped_image ?? ''); ?>">
 
                     <button type="submit" class="w-full py-5 bg-[#0052FF] text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-[#0A192F] transition-all shadow-xl">
                         Publish Ticket 
@@ -120,7 +117,6 @@ include '../includes/header.php';
 </div>
 
 <script>
-    // Just a quick script to make sure the icons look right on the preview card
     lucide.createIcons();
 </script>
 

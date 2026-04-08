@@ -89,6 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                                 $scrapedMeta['name']  = $json['name'] ?? '';
                                 $scrapedMeta['venue'] = $json['location']['name'] ?? '';
                                 $scrapedMeta['date']  = $json['startDate'] ?? '';
+                                $scrapedMeta['image'] = $json['image'] ?? null;
+
+                                
                                 
                                 if (isset($json['offers'])) {
                                     $offers = isset($json['offers'][0]) ? $json['offers'] : [$json['offers']];
@@ -131,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                                 'venue'        => $scrapedMeta['venue'],
                                 'event_date'   => $scrapedMeta['date'],
                                 'retail_price' => $matchedPrice,
+                                'event_image'  => $scrapedMeta['image'], 
                                 'is_verified'  => true,
                                 'upload_name'  => $originalName,
                                 'p_hash'       => $fileName 
