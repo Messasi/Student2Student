@@ -50,8 +50,9 @@ try {
 
     // B. Update ticket status to 'sold'
     // B. Update ticket status to 'sold' AND assign the buyer_id
-// This is the link that allows the download_ticket.php script to work!
-    $update_sql = "UPDATE tickets SET status = 'sold', buyer_id = ? WHERE id = ?";
+// This is the link that allows the download_ticket.php script to work! //need to cahgen 
+
+    $update_sql = "UPDATE tickets SET status = 'sold', buyer_id = ? WHERE id = ?";  
     $update_stmt = $conn->prepare($update_sql);
     $update_stmt->bind_param("ii", $buyer_id, $ticket_id);
     $update_stmt->execute();
