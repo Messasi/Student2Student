@@ -36,6 +36,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
             <ul class="hidden lg:flex items-center justify-center gap-2 m-0 p-0 list-none">
                 <li><a href="/student2student/index.php" class="nav-link nav-discovery">Discovery</a></li>
                 <li><a href="/student2student/listings/ticket_listing.php" class="nav-link nav-create">Sell Tickets</a></li>
+                
                 <li><a href="/student2student/pages/events.php" class="nav-link nav-about">Events</a></li>
             </ul>
 
@@ -67,6 +68,16 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                                         <i data-lucide="wallet" class="w-4 h-4 text-[#64748B]"></i>
                                         Financial Hub
                                     </a>
+                                    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1): ?>
+                                        <div class="px-4 pt-2 pb-1 text-[9px] font-black uppercase tracking-widest text-[#0052FF] opacity-60">Administration</div>
+                                        
+                                        <a href="/student2student/admin/dashboard.php" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#0052FF] hover:bg-blue-50 transition-colors no-underline">
+                                            <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                            Admin Panel
+                                        </a>
+                                        
+                                        <hr class="border-[#E2E8F0] my-1">
+                                    <?php endif; ?>
                                     <a href="/student2student/dashboard/settings.php" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#0A192F] hover:bg-[#F8FAFC] transition-colors no-underline">
                                         <i data-lucide="settings" class="w-4 h-4 text-[#64748B]"></i>
                                         Settings
