@@ -8,7 +8,7 @@ if (isset($_GET['delete_id'])) {
     header("Location: listings.php?status=removed");
 }
 
-renderAdminHeader("Listing Review");
+renderAdminHeader("Ticket Management");
 
 $all_listings = $conn->query("SELECT t.*, u.username FROM tickets t JOIN users u ON t.seller_id = u.id ORDER BY t.created_at DESC");
 ?>

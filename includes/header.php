@@ -68,9 +68,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                                         <i data-lucide="wallet" class="w-4 h-4 text-[#64748B]"></i>
                                         Financial Hub
                                     </a>
-                                    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1): ?>
-                                        <div class="px-4 pt-2 pb-1 text-[9px] font-black uppercase tracking-widest text-[#0052FF] opacity-60">Administration</div>
-                                        
+                                    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1): ?>                       
                                         <a href="/student2student/admin/dashboard.php" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-[#0052FF] hover:bg-blue-50 transition-colors no-underline">
                                             <i data-lucide="shield-check" class="w-4 h-4"></i>
                                             Admin Panel

@@ -8,7 +8,7 @@ if (isset($_GET['delete_user'])) {
     header("Location: users.php?status=deleted");
 }
 
-renderAdminHeader("User Directory");
+renderAdminHeader("User Management");
 $all_users = $conn->query("SELECT * FROM users ORDER BY created_at DESC");
 ?>
 
