@@ -3,12 +3,42 @@
 require_once '../config/database.php';
 include '../includes/header.php';
 
-// Get the ticket ID from the URL (e.g., checkout.php?id=12)
+// Get the ticket ID from the URL
 $ticket_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
+// --- CLICK TRACKER LOGIC ---
+if (isset($_SESSION['user_id']) && $ticket_id > 0) {
+    $user_id = (int)$_SESSION['user_id'];
 
-// Fetch the specific ticket and the seller's details from the database
-$query = "SELECT t.*, u.username, u.profile_picture 
+    $cat_query = $conn->prepare("SELECT category FROM tickets WHERE id = ?");
+    $cat_query->bind_param("i", $ticket_id);
+    $cat_query->execute();
+    $cat_res = $cat_query->get_result()->fetch_assoc();
+
+    if ($cat_res) {
+        $category = strtolower($cat_res['category']);
+        $column = "";
+
+        if (strpos($category, 'club') !== false) {
+            $column = "pref_club_clicks";
+        } elseif (strpos($category, 'sport') !== false) {
+            $column = "pref_sports_clicks";
+        } elseif (strpos($category, 'society') !== false) {
+            $column = "pref_society_clicks";
+        } elseif (strpos($category, 'gig') !== false || strpos($category, 'academic') !== false) {
+            $column = "pref_gig_clicks";
+        }
+
+        if (!empty($column)) {
+            $update = $conn->prepare("UPDATE users SET $column = $column + 1 WHERE id = ?");
+            $update->bind_param("i", $user_id);
+            $update->execute();
+        }
+    }
+}
+
+// Fetch ticket and seller details including points
+$query = "SELECT t.*, u.username, u.profile_picture, u.points 
           FROM tickets t 
           JOIN users u ON t.seller_id = u.id 
           WHERE t.id = ? AND t.status = 'active' 
@@ -20,13 +50,27 @@ $stmt->execute();
 $result = $stmt->get_result();
 $ticket = $result->fetch_assoc();
 
-// Redirect back if the ticket doesn't exist or is already sold
 if (!$ticket) {
     echo "<script>alert('Ticket not found or no longer available.'); window.location.href='index.php';</script>";
     exit;
 }
 
-// Calculate prices based on the database 'selling_price'
+// Determine Points Bracket
+$pts = $ticket['points'] ?? 0;
+if ($pts >= 500) {
+    $bracket_text = "Gold Seller";
+    $bracket_css = "text-yellow-600";
+} elseif ($pts >= 100) {
+    $bracket_text = "Silver Seller";
+    $bracket_css = "text-slate-500";
+} elseif ($pts >= 10) {
+    $bracket_text = "Bronze Seller";
+    $bracket_css = "text-orange-600";
+} else {
+    $bracket_text = "New Seller";
+    $bracket_css = "text-blue-500";
+}
+
 $price = (float)$ticket['selling_price'];
 $fee = 1.50;
 $total = number_format($price + $fee, 2);
@@ -37,7 +81,7 @@ $seller_user = $ticket['username'];
     <div class="mx-auto px-6 py-16 max-w-6xl">
         
         <div class="text-center mb-16">
-            <h1 class="text-5xl font-extrabold text-[#0A192F] tracking-tight">
+            <h1 class="text-5xl font-extrabold text-[#0A192F] tracking-tight uppercase">
                 Review Purchase
             </h1>
             <div class="h-1.5 w-24 bg-[#0052FF] mt-6 mx-auto rounded-full"></div>
@@ -57,17 +101,21 @@ $seller_user = $ticket['username'];
                         </div>
                         <div class="flex flex-col">
                             <span class="text-sm font-bold text-[#0A192F]">@<?php echo htmlspecialchars($seller_user); ?></span>
-                            <span class="text-[10px] font-bold text-[#0052FF] uppercase tracking-tighter">Verified Price</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest <?= $bracket_css ?>">
+                                <?= $bracket_text ?>
+                            </span>
                         </div>
                     </div>
 
-                    <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-6 flex items-center justify-center border border-[#F1F5F9]">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-[#CBD5E1]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                        </svg>
+                    <div class="w-full aspect-video bg-[#F8FAFC] rounded-2xl mb-6 flex items-center justify-center border border-[#F1F5F9] overflow-hidden">
+                        <?php if (!empty($ticket['event_image'])): ?>
+                            <img src="<?= htmlspecialchars($ticket['event_image']) ?>" class="w-full h-full object-cover">
+                        <?php else: ?>
+                            <i data-lucide="ticket" class="w-12 h-12 text-[#CBD5E1]"></i>
+                        <?php endif; ?>
                     </div>
 
-                    <div class="text-lg font-bold text-[#0A192F] mb-1 uppercase truncate">
+                    <div class="text-lg font-bold text-[#0A192F] mb-1 uppercase truncate tracking-tight">
                         <?php echo htmlspecialchars($ticket['event_name']); ?>
                     </div>
                     <div class="text-sm font-medium text-[#64748B] mb-8 uppercase tracking-tight">
@@ -75,48 +123,54 @@ $seller_user = $ticket['username'];
                     </div>
                     
                     <div class="mt-auto pt-6 border-t border-[#F1F5F9]">
-                        <span class="text-2xl font-bold text-[#0A192F]">£<?php echo number_format($price, 2); ?></span>
+                        <span class="text-2xl font-black text-[#0A192F]">£<?php echo number_format($price, 2); ?></span>
                     </div>
                 </div>
 
                 <div class="w-full max-w-[420px] bg-white border border-[#E2E8F0] rounded-[2rem] p-10 shadow-sm flex flex-col">
-                    <h2 class="text-2xl font-bold text-[#0A192F] mb-8">Order Summary</h2>
+                    <h2 class="text-2xl font-bold text-[#0A192F] mb-8 uppercase tracking-tight">Order Summary</h2>
                     
                     <div class="space-y-5 mb-10">
-                        <div class="flex justify-between text-base font-medium text-[#64748B]">
+                        <div class="flex justify-between text-base font-bold text-[#64748B] uppercase tracking-tight">
                             <span>Ticket Listing</span>
                             <span class="text-[#0A192F]">£<?php echo number_format($price, 2); ?></span>
                         </div>
-                        <div class="flex justify-between text-base font-medium text-[#64748B]">
+                        <div class="flex justify-between text-base font-bold text-[#64748B] uppercase tracking-tight">
                             <span>Processing Fee</span>
                             <span class="text-[#0A192F]">£<?php echo number_format($fee, 2); ?></span>
                         </div>
                         <div class="border-t border-[#F1F5F9] pt-6 flex justify-between items-center">
-                            <span class="text-lg font-bold text-[#0A192F]">Total</span>
-                            <span class="text-4xl font-extrabold text-[#0052FF]">£<?php echo $total; ?></span>
+                            <span class="text-lg font-black text-[#0A192F] uppercase tracking-tight">Total</span>
+                            <span class="text-4xl font-black text-[#0052FF] tracking-tighter">£<?php echo $total; ?></span>
                         </div>
                     </div>
 
                     <form action="success.php" method="POST" class="mt-auto">
                         <input type="hidden" name="ticket_id" value="<?php echo $ticket['id']; ?>">
-                        <button type="submit" class="w-full bg-[#0052FF] text-white py-5 rounded-2xl font-bold text-sm uppercase tracking-widest hover:bg-[#0041CC] transition-all shadow-lg shadow-[#0052FF]/20">
+                        <button type="submit" class="w-full bg-[#0052FF] text-white py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#0A192F] transition-all shadow-lg shadow-[#0052FF]/20">
                             Confirm Purchase
                         </button>
                     </form>
 
-                    <p class="mt-8 text-[11px] text-[#64748B] text-center font-bold uppercase tracking-[0.2em]">
-                        Secure Checkout
+                    <p class="mt-8 text-[11px] text-[#64748B] text-center font-black uppercase tracking-[0.2em]">
+                        Secure Escrow Checkout
                     </p>
                 </div>
             </div>
 
             <div class="mt-16 max-w-xl text-center">
                 <p class="text-sm text-[#64748B] font-bold leading-relaxed opacity-80 uppercase tracking-tight">
-                    The ticket will be available in your dashboard immediately after payment.
+                    Funds are held in escrow. Release only when you have successfully used your ticket.
                 </p>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        lucide.createIcons();
+    });
+</script>
 
 <?php include '../includes/footer.php'; ?>
