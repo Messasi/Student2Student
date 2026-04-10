@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['a
                 $conn->query("UPDATE users SET points = points - 50 WHERE id = $sid");
             }
             $conn->commit();
-            header("Location: dashboard.php?msg=disputed");
+            header("Location: dashboard.php?msg=disputed");  
         } catch (Exception $e) { $conn->rollback(); }
     }
     exit();
@@ -58,6 +58,16 @@ include '../includes/header.php';
 <div class="bg-white min-h-screen text-[#0A192F] font-sans">
     <div class="mx-auto px-6 lg:px-[60px] py-12">
         
+        <?php if (isset($_GET['msg'])): ?>
+            <div class="mb-6 p-4 bg-[#F8FAFC] text-[#0A192F] text-[10px] font-bold uppercase tracking-widest">
+                <?php 
+                    if($_GET['msg'] == 'confirmed') echo "Success: Ticket confirmed and points added.";
+                    elseif($_GET['msg'] == 'disputed') echo "Alert: Dispute raised and seller penalised.";
+                    elseif($_GET['msg'] == 'removed') echo "Success: Listing has been removed.";
+                ?>
+            </div>
+        <?php endif; ?>
+
         <div class="mb-12">
             <h1 class="text-4xl font-extrabold mb-6 tracking-tight uppercase leading-none">Financial Hub</h1>
             <div class="grid md:grid-cols-2 gap-6">
@@ -85,13 +95,17 @@ include '../includes/header.php';
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        <?php while($sale = $sold_tickets->fetch_assoc()): ?>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-bold uppercase text-sm"><?= htmlspecialchars($sale['event_name']); ?></td>
-                            <td class="px-6 py-4 text-xs font-bold text-gray-600">@<?= htmlspecialchars($sale['buyer_name']); ?></td>
-                            <td class="px-6 py-4 text-blue-600 font-bold">£<?= number_format($sale['price'], 2); ?></td>
-                        </tr>
-                        <?php endwhile; ?>
+                        <?php if($sold_tickets->num_rows > 0): ?>
+                            <?php while($sale = $sold_tickets->fetch_assoc()): ?>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-bold uppercase text-sm"><?= htmlspecialchars($sale['event_name']); ?></td>
+                                <td class="px-6 py-4 text-xs font-bold text-gray-600">@<?= htmlspecialchars($sale['buyer_name']); ?></td>
+                                <td class="px-6 py-4 text-blue-600 font-bold">£<?= number_format($sale['price'], 2); ?></td>
+                            </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr><td colspan="3" class="px-6 py-8 text-center text-gray-400 text-[10px] uppercase font-bold tracking-widest">No sales yet</td></tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -105,19 +119,23 @@ include '../includes/header.php';
                         <tr>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Event</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Price</th>
-                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Remove</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-right">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
-                        <?php while($listing = $active_listings->fetch_assoc()): ?>
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-bold uppercase text-sm"><?= htmlspecialchars($listing['event_name']); ?></td>
-                            <td class="px-6 py-4 text-xs font-bold">£<?= number_format($listing['selling_price'], 2); ?></td>
-                            <td class="px-6 py-4">
-                                <button onclick="removeListing(<?= $listing['id']; ?>)" class="text-red-500 hover:text-red-700 transition-colors"><i data-lucide="trash" class="w-5 h-5"></i></button>
-                            </td>
-                        </tr>
-                        <?php endwhile; ?>
+                        <?php if($active_listings->num_rows > 0): ?>
+                            <?php while($listing = $active_listings->fetch_assoc()): ?>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-bold uppercase text-sm"><?= htmlspecialchars($listing['event_name']); ?></td>
+                                <td class="px-6 py-4 text-xs font-bold">£<?= number_format($listing['selling_price'], 2); ?></td>
+                                <td class="px-6 py-4 text-right">
+                                    <button onclick="removeListing(<?= $listing['id']; ?>)" class="text-red-500 font-black text-[10px] uppercase tracking-widest">Remove</button>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr><td colspan="3" class="px-6 py-8 text-center text-gray-400 text-[10px] uppercase font-bold tracking-widest">No active listings</td></tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -131,7 +149,7 @@ include '../includes/header.php';
                         <tr>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Event</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Price</th>
-                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Manage</th>
+                            <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-widest text-right">Manage</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -140,24 +158,24 @@ include '../includes/header.php';
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4">
                                     <p class="font-bold uppercase text-sm"><?= htmlspecialchars($p['event_name']); ?></p>
-                                    <p class="text-[9px] font-black uppercase tracking-tighter opacity-50">Seller: @<?= htmlspecialchars($p['seller_name']); ?></p>
+                                    <p class="text-[9px] font-bold uppercase opacity-40">From: @<?= htmlspecialchars($p['seller_name']); ?></p>
                                 </td>
                                 <td class="px-6 py-4 text-sm font-bold text-[#0A192F]">£<?= number_format($p['price'], 2); ?></td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 text-right">
                                     <?php if($status === 'held'): ?>
-                                        <form method="POST" class="flex gap-2">
+                                        <form method="POST" class="inline-flex gap-2">
                                             <input type="hidden" name="order_id" value="<?= $p['id']; ?>">
-                                            <button type="submit" name="action" value="confirm" class="bg-[#10B981] text-white text-[9px] font-black uppercase px-3 py-1.5 rounded-lg hover:bg-green-600 transition-all">Confirm</button>
-                                            <button type="submit" name="action" value="dispute" onclick="return confirm('Proceed?')" class="bg-red-50 text-red-600 text-[9px] font-black uppercase px-3 py-1.5 rounded-lg hover:bg-red-600 hover:text-white transition-all">Dispute</button>
+                                            <button type="submit" name="action" value="confirm" class="text-[#10B981] font-black text-[10px] uppercase tracking-widest">Confirm</button>
+                                            <button type="submit" name="action" value="dispute" onclick="return confirm('Report issue?')" class="text-red-500 font-black text-[10px] uppercase tracking-widest">Dispute</button>
                                         </form>
                                     <?php else: ?>
-                                        <span class="text-[9px] font-black uppercase opacity-40 italic"><?= $status ?></span>
+                                        <span class="text-[9px] font-black uppercase opacity-30 italic"><?= $status ?></span>
                                     <?php endif; ?>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <tr><td colspan="3" class="px-6 py-8 text-center text-gray-400 font-medium">No purchases found.</td></tr>
+                            <tr><td colspan="3" class="px-6 py-8 text-center text-gray-400 text-[10px] uppercase font-bold tracking-widest">No purchases yet</td></tr>
                         <?php endif; ?>
                     </tbody>
                 </table>
@@ -168,7 +186,10 @@ include '../includes/header.php';
 </div>
 
 <script>
-lucide.createIcons();
-function removeListing(id) { if(confirm('Remove this listing?')) window.location.href = 'remove_listing.php?id=' + id; }
+function removeListing(id) { 
+    if(confirm('Remove this listing?')) {
+        window.location.href = '../actions/remove_listing.php?id=' + id; 
+    }
+}
 </script>
 <?php include '../includes/footer.php'; ?>
