@@ -8,12 +8,28 @@ $active_listings = $conn->query("SELECT COUNT(*) FROM tickets WHERE status='acti
 $sold_tickets = $conn->query("SELECT COUNT(*) FROM orders WHERE status='completed'")->fetch_row()[0];
 
 // Today's Stats
-$today_start = date('Y-m-d 00:00:00');
-$sold_today = $conn->query("SELECT COUNT(*) FROM orders WHERE status='completed' AND created_at >= '$today_start'")->fetch_row()[0];
-$disputed_today = $conn->query("SELECT COUNT(*) FROM orders WHERE status='disputed' AND created_at >= '$today_start'")->fetch_row()[0];
+// --- UPDATED STATS LOGIC ---
+
+// 1. Sold Today: Any ticket purchased today (Held or Completed)
+$sold_today_query = "SELECT COUNT(*) FROM orders WHERE (status='completed' OR status='held') AND DATE(created_at) = CURDATE()";
+$sold_today = $conn->query($sold_today_query)->fetch_row()[0];
+
+// 2. Disputed Today: Any ticket disputed today
+$disputed_today_query = "SELECT COUNT(*) FROM orders WHERE status='disputed' AND DATE(created_at) = CURDATE()";
+$disputed_today = $conn->query($disputed_today_query)->fetch_row()[0];
+
+// 3. Update the global Sold Tickets count to include current Escrow
+$sold_tickets = $conn->query("SELECT COUNT(*) FROM orders WHERE status='completed' OR status='held'")->fetch_row()[0];
 
 $cat_stats = $conn->query("SELECT category, COUNT(*) as count FROM tickets WHERE status='active' GROUP BY category");
-$recent_activity = $conn->query("SELECT event_name, created_at, category FROM tickets ORDER BY created_at DESC LIMIT 5");
+// Join with users table to get the seller's username
+$recent_activity = $conn->query("
+    SELECT t.event_name, t.created_at, t.category, u.username 
+    FROM tickets t 
+    JOIN users u ON t.seller_id = u.id 
+    ORDER BY t.created_at DESC 
+    LIMIT 5
+");
 ?>
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
@@ -62,17 +78,11 @@ $recent_activity = $conn->query("SELECT event_name, created_at, category FROM ti
                     <p class="text-[9px] font-black uppercase tracking-widest text-[#0A192F] mb-1">Tickets Sold Today</p>
                     <p class="text-2xl font-black text-black"><?= $sold_today ?></p>
                 </div>
-                <div class="w-10 h-10 bg-white border border-[#E2E8F0] rounded-full flex items-center justify-center text-[#0A192F]">
-                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
-                </div>
             </div>
             <div class="p-6 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl flex justify-between items-center">
                 <div>
                     <p class="text-[9px] font-black uppercase tracking-widest text-[#0A192F] mb-1">Disputed Tickets Today</p>
                     <p class="text-2xl font-black text-black"><?= $disputed_today ?></p>
-                </div>
-                <div class="w-10 h-10 bg-white border border-[#E2E8F0] rounded-full flex items-center justify-center text-[#0A192F]">
-                    <i data-lucide="alert-triangle" class="w-4 h-4"></i>
                 </div>
             </div>
         </div>
@@ -84,12 +94,30 @@ $recent_activity = $conn->query("SELECT event_name, created_at, category FROM ti
         <h3 class="text-xs font-black uppercase tracking-widest text-[#0A192F]">Recent System Activity</h3>
     </div>
     <div class="p-0">
-        <?php while($act = $recent_activity->fetch_assoc()): ?>
-        <div class="p-6 border-b border-[#F1F5F9] flex items-center justify-between hover:bg-[#F8FAFC] transition-all">
-            <div class="text-sm font-black text-[#0A192F] uppercase truncate mr-4"><?= htmlspecialchars($act['event_name']) ?></div>
-            <span class="text-[10px] font-bold text-[#94A3B8] whitespace-nowrap"><?= date('H:i', strtotime($act['created_at'])) ?></span>
-        </div>
-        <?php endwhile; ?>
+        <?php if($recent_activity && $recent_activity->num_rows > 0): ?>
+            <?php while($act = $recent_activity->fetch_assoc()): ?>
+            <div class="p-6 border-b border-[#F1F5F9] flex items-center justify-between hover:bg-[#F8FAFC] transition-all">
+                <div class="flex flex-col">
+                    <div class="text-sm font-black text-[#0A192F] uppercase truncate mr-4">
+                        <?= htmlspecialchars($act['event_name']) ?>
+                    </div>
+                    <div class="text-[9px] font-bold text-[#0A192F] uppercase tracking-widest mt-1">
+                        Listed by @<?= htmlspecialchars($act['username']) ?>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] font-bold text-[#94A3B8] whitespace-nowrap">
+                        <?= date('H:i', strtotime($act['created_at'])) ?>
+                    </span>
+                    <p class="text-[8px] font-black text-[#64748B] uppercase tracking-tighter">
+                        <?= htmlspecialchars($act['category']) ?>
+                    </p>
+                </div>
+            </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p class="p-8 text-xs font-bold text-[#64748B] uppercase italic">No recent activity</p>
+        <?php endif; ?>
     </div>
 </div>
 

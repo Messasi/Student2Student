@@ -68,7 +68,7 @@ function renderEventRow($eventList, $icon) {
     </div>
     
     <div class="px-6 lg:px-[60px] flex gap-3 overflow-x-auto pb-16 scrollbar-hide">
-        <button data-filter="all" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-[#0052FF] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-[#0052FF]/20 transition-all">All Events</button>
+        <button data-filter="all" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-[#0052FF] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">All Events</button>
         <button data-filter="club" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Club Nights</button>
         <button data-filter="sports" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Sports</button>
         <button data-filter="society" onclick="filterEvents(this)" class="filter-btn px-8 py-4 bg-white border border-[#E2E8F0] text-[#64748B] rounded-2xl text-[10px] font-black uppercase tracking-widest hover:border-[#0052FF] transition-all">Societies</button>
