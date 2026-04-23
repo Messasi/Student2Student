@@ -33,8 +33,6 @@
            <button id="close-menu-btn" class="w-10 h-10 bg-[#F8FAFC] rounded-full flex items-center justify-center text-[#0A192F] cursor-pointer border-none">
                 <i data-lucide="x" class="w-6 h-6"></i>
            </button>
-
-          
         </div>
 
         <div class="flex-grow flex flex-col justify-between px-8 py-12">

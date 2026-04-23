@@ -1,14 +1,16 @@
 <?php
-// 1. Start session and include database FIRST
-
+// connect to database file
 require_once '../config/database.php';
-// Include Composer's autoloader
+// add header file
+include '../includes/header.php';
+
+// load external mail library
 require_once '../vendor/autoload.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// Initialise variables
+// initialise storage for errors and user data
 $errors = [];
 $success = '';
 $username = ''; 
@@ -18,8 +20,9 @@ $email = '';
 $personal_email = '';
 $grad_year = '';
 
-// 2. Process Form Logic
+// process registration form when submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // clean and store form inputs
     $username = trim($_POST['username'] ?? ''); 
     $first_name = trim($_POST['first_name'] ?? '');
     $last_name = trim($_POST['last_name'] ?? '');
@@ -30,8 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $confirm_password = $_POST['confirm_password'] ?? '';
     $terms = isset($_POST['terms']);
     
-    //Validation Checks
-      // Username
+    // check if username is valid
     if (empty($username)) {
         $errors[] = 'Username is required';
     } elseif (strlen($username) <= 2) {
@@ -40,84 +42,96 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Username can only contain letters';
     }
 
-    // Name
+    // check if name is valid
     if (empty($first_name) || empty($last_name) || strlen($first_name) < 2 || strlen($last_name) < 2) {
         $errors[] = 'Full name is required and must be at least 2 characters long';
     }
 
-    // Emails
+    // check if university email is valid
     if (empty($email)) {
         $errors[] = 'Student email is required';
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match('/@(.+\.)?(ac\.uk|edu)$/i', $email)) {
         $errors[] = 'Please use a valid student email address (.ac.uk or .edu)';
     }
 
+    // check if personal email is valid
     if (empty($personal_email) || !filter_var($personal_email, FILTER_VALIDATE_EMAIL)) {
         $errors[] = 'Valid personal email is required';
     }
 
-    // Grad Year
+    // check if grad year is provided
     if (empty($grad_year)) {
         $errors[] = 'Graduation year is required';
     }
 
-    // Password
+    // check if password meets security requirements
     if (empty($password) || strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
         $errors[] = 'Password must be 8+ characters with uppercase, lowercase, and numbers';
     }
 
+    // check if both passwords match
     if ($password !== $confirm_password) {
         $errors[] = 'Passwords do not match';
     }
 
+    // check if terms are accepted
     if (!$terms) {
         $errors[] = 'You must agree to the terms and conditions';
     }   
 
+    // process data if no validation errors found
     if (empty($errors)) {
         if (!isset($conn)) {
             $errors[] = "System Error: Database connection variable '\$conn' is missing.";
         } else {
             try {
+                // create secure password hash
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-                // IMPORTANT: is_verified is now 0 by default
+                // prepare sql to insert new user record
                 $sql = "INSERT INTO users (username, first_name, last_name, email, personal_email, grad_year, password_hash, is_verified, is_admin) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0)";
 
                 $stmt = $conn->prepare($sql);
 
                 if ($stmt) {
+                    // bind user data to sql placeholders
                     $stmt->bind_param("sssssss", $username, $first_name, $last_name, $email, $personal_email, $grad_year, $hashed_password);
+                    // run user insertion
                     $stmt->execute();
+                    // fetch new user id
                     $user_id = $conn->insert_id;
 
-                    // --- GENERATE VERIFICATION TOKEN ---
+                    // generate secure verification token
                     $token = bin2hex(random_bytes(32));
+                    // set token expiry time
                     $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
 
+                    // prepare sql to save verification token
                     $t_sql = "INSERT INTO verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)";
                     $t_stmt = $conn->prepare($t_sql);
+                    // bind token data
                     $t_stmt->bind_param("iss", $user_id, $token, $expires);
+                    // run token insertion
                     $t_stmt->execute();
 
-                    // --- SEND EMAIL VIA GMAIL SMTP ---
+                    // initialise mail library
                     $mail = new PHPMailer(true);
                     
-                    // Server settings
+                    // configure smtp server settings
                     $mail->isSMTP();
                     $mail->Host       = 'smtp.gmail.com';
                     $mail->SMTPAuth   = true;
                     $mail->Username   = 'leonnupa8@gmail.com';
-                    $mail->Password   = 'obtefwnbeelihkjg'; // Your App Password
+                    $mail->Password   = 'obtefwnbeelihkjg'; 
                     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                     $mail->Port       = 587;
 
-                    // Recipients
+                    // set sender and recipient addresses
                     $mail->setFrom('leonnupa8@gmail.com', 'Student2Student');
-                    $mail->addAddress($email); // Send to university email
+                    $mail->addAddress($email); 
 
-                    // Content
+                    // configure email content
                     $mail->isHTML(true);
                     $mail->Subject = 'Verify Your Student Account';
                     $mail->Body    = "
@@ -131,13 +145,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <p style='font-size: 12px; color: #94a3b8; margin-top: 30px;'>If you did not create this account, please ignore this email.</p>
                         </div>";
 
+                    // run email delivery
                     $mail->send();
 
-                    // Success! Redirect to the notice page
+                    // redirect to notification page on success
                     header("Location: /student2student/auth/verify_notice.php");
                     exit;
                 }
             } catch (Exception $e) {
+                // handle duplicate account errors
                 if ($e instanceof mysqli_sql_exception && $e->getCode() === 1062) {
                     $errors[] = 'This email or username is already registered.';
                 } else {
@@ -147,8 +163,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-// 3. Include Header
-include '../includes/header.php';
 ?>
 
 <div class="bg-white min-h-screen">

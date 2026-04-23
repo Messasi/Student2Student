@@ -1,9 +1,12 @@
 <?php 
+// initialise user session data
 session_start();
 
+// link database and library files
 require_once '../config/database.php';
 require_once '../vendor/autoload.php'; 
 
+// check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     include '../includes/header.php';
     ?>
@@ -22,31 +25,33 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// reset error and temporary storage
 $error = null;
 unset($_SESSION['scraped_ticket']);
 
+// process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
     
     $file         = $_FILES['ticket_pdf'];
     $tmpPath      = $file['tmp_name'];
     $originalName = htmlspecialchars($file['name']);
     
+    // verify file type
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
     $mime  = finfo_file($finfo, $tmpPath);
     finfo_close($finfo);
     
     if ($mime === 'application/pdf') {
         
-        // 1. Generate the unique fingerprint for this specific file
+        // generate unique identifier for file
         $p_hash   = hash_file('sha256', $tmpPath);
         $fileName = $p_hash . ".pdf"; 
         $uploadDir = "../uploads/tickets/";
         $destPath = $uploadDir . $fileName;
 
-        // --- NEW DUPLICATE CHECK START ---
-        // Check if this exact file hash already exists in our database
+        // check for duplicate ticket files
         $check_stmt = $conn->prepare("SELECT id FROM tickets WHERE pdf_hash = ? OR pdf_hash = ? LIMIT 1");
-        $pure_hash = $p_hash; // checking both with and without .pdf just in case
+        $pure_hash = $p_hash; 
         $check_stmt->bind_param("ss", $pure_hash, $fileName);
         $check_stmt->execute();
         $check_result = $check_stmt->get_result();
@@ -54,13 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
         if ($check_result->num_rows > 0) {
             $error = "This is a duplicated ticket. It has already been listed on the marketplace.";
         } else {
-            // --- NEW DUPLICATE CHECK END ---
-
-            // Ensure the directory exists
+            // ensure storage folder exists
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
 
+            // save file to server
             if (move_uploaded_file($tmpPath, $destPath)) {
                 
                 $eventUrl = $_POST['event_url'] ?? '';
@@ -69,6 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                 if ($isFatsoma) {
                     $scrapedMeta = ['name' => '', 'tiers' => [], 'venue' => '', 'date' => ''];
                     
+                    // fetch event website data
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, $eventUrl);
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -83,6 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                         $xpath   = new DOMXPath($dom);
                         $scripts = $xpath->query('//script[@type="application/ld+json"]');
                         
+                        // extract metadata from website
                         foreach ($scripts as $script) {
                             $json = json_decode($script->nodeValue, true);
                             if (is_array($json) && isset($json['@type']) && $json['@type'] === 'Event') {
@@ -91,8 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                                 $scrapedMeta['date']  = $json['startDate'] ?? '';
                                 $scrapedMeta['image'] = $json['image'] ?? null;
 
-                                
-                                
                                 if (isset($json['offers'])) {
                                     $offers = isset($json['offers'][0]) ? $json['offers'] : [$json['offers']];
                                     foreach ($offers as $o) {
@@ -106,10 +110,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                     }
 
                     try {
+                        // extract text from pdf file
                         $parser  = new \Smalot\PdfParser\Parser();
                         $pdf     = $parser->parseFile($destPath);
                         $pdfText = $pdf->getText();
                         
+                        // helper function for text cleaning
                         $stripEmojis = function(string $str): string {
                             $str = preg_replace('/[^\x{0020}-\x{007E}\x{00A0}-\x{024F}]/u', '', $str);
                             return trim(preg_replace('/\s+/', ' ', $str));
@@ -118,6 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                         $cleanPdfText    = $stripEmojis(preg_replace('/\s+/', ' ', $pdfText));
                         $cleanTargetName = $stripEmojis(preg_replace('/\s+/', ' ', $scrapedMeta['name']));
 
+                        // verify pdf content matches website data
                         $nameMatch = (!empty($cleanTargetName) && strpos($cleanPdfText, $cleanTargetName) !== false);
                         
                         if ($nameMatch) {
@@ -129,6 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                                 }
                             }
 
+                            // store verified data in session
                             $_SESSION['scraped_ticket'] = [
                                 'event_name'   => $scrapedMeta['name'],
                                 'venue'        => $scrapedMeta['venue'],
@@ -144,6 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                             header("Location: ticket_details.php");
                             exit();
                         } else {
+                            // delete file if verification fails
                             unlink($destPath);
                             $error = "Verification failed: The PDF and link do not match.";
                         }
@@ -152,6 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
                         $error = "Could not read PDF. Please use the original file.";
                     }
                 } else {
+                    // handle non automated providers
                     $_SESSION['scraped_ticket'] = [
                         'event_name'   => '', 'venue' => '', 'event_date' => '', 'retail_price' => '0.00',
                         'is_verified'  => false, 'upload_name' => $originalName, 'p_hash' => $fileName,
@@ -164,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ticket_pdf'])) {
             } else {
                 $error = "Failed to save the ticket file to the server.";
             }
-        } // End of duplicate check else
+        } 
         $check_stmt->close();
     } else {
         $error = "Please upload a valid PDF file.";
@@ -227,6 +237,7 @@ include '../includes/header.php';
 </div>
 
 <script>
+// function that displays chosen filename
 function displayFileName() {
     const input = document.getElementById('ticket_pdf');
     const display = document.getElementById('file-name-display');
@@ -238,4 +249,7 @@ function displayFileName() {
 }
 </script>
 
-<?php include '../includes/footer.php'; ?>
+<?php 
+// insert footer navigation
+include '../includes/footer.php'; 
+?>

@@ -1,8 +1,10 @@
 <?php 
+// connect to database file
 require_once '../config/database.php';
+// add header file
 include '../includes/header.php'; 
 
-// Database logic remains exactly the same
+// prepare sql to group tickets by event and calculate minimum prices
 $query = "SELECT 
             event_name, 
             event_location, 
@@ -14,8 +16,10 @@ $query = "SELECT
           GROUP BY event_name, event_location, category 
           ORDER BY event_date ASC";
 
+// run the grouping query
 $result = $conn->query($query);
 
+// initialize empty arrays for event categories
 $events = [
     'sports'   => [],
     'club'     => [],
@@ -24,8 +28,10 @@ $events = [
 ];
 
 if ($result) {
+    // loop through grouped database results
     while ($row = $result->fetch_assoc()) {
         $cat = strtolower($row['category']);
+        // sort events into category arrays based on category name
         if (strpos($cat, 'club') !== false) $events['club'][] = $row;
         elseif (strpos($cat, 'sports') !== false) $events['sports'][] = $row;
         elseif (strpos($cat, 'society') !== false) $events['society'][] = $row;
@@ -33,11 +39,14 @@ if ($result) {
     }
 }
 
+// function for generating event cards
 function renderEventRow($eventList, $icon) {
+    // check for empty list
     if (empty($eventList)) {
         echo '<p class="text-[#64748B] font-black uppercase text-[10px] tracking-widest ml-2 opacity-50">No active events found.</p>';
         return;
     }
+    // loop through and display each event card
     foreach ($eventList as $event) {
         ?>
         <div class="min-w-[85%] md:min-w-[45%] lg:min-w-[calc(25%-18px)] bg-white border border-[#E2E8F0] rounded-[2rem] p-6 snap-start group transition-all hover:border-[#0052FF]/30">
@@ -129,23 +138,21 @@ function renderEventRow($eventList, $icon) {
 </div>
 
 <script>
-/**
- * Much easier way: Looks at data-filter on button and data-category on section
- */
+// function that filters category sections visibility
 function filterEvents(btn) {
     const category = btn.getAttribute('data-filter');
 
-    // Reset button styles
+    // remove active styles from buttons
     document.querySelectorAll('.filter-btn').forEach(button => {
         button.classList.remove('bg-[#0052FF]', 'text-white', 'shadow-xl', 'shadow-[#0052FF]/20');
         button.classList.add('bg-white', 'text-[#64748B]', 'border-[#E2E8F0]');
     });
     
-    // Highlight active button
+    // add active styles to clicked button
     btn.classList.add('bg-[#0052FF]', 'text-white', 'shadow-xl', 'shadow-[#0052FF]/20');
     btn.classList.remove('bg-white', 'text-[#64748B]', 'border-[#E2E8F0]');
 
-    // Filter sections by data attribute
+    // hide or show category sections based on filter selection
     document.querySelectorAll('.event-section').forEach(section => {
         const sectionCat = section.getAttribute('data-category');
         
@@ -157,12 +164,14 @@ function filterEvents(btn) {
     });
 }
 
+// function for smooth horizontal scroll navigation
 function scrollRow(rowId, direction) {
     const row = document.getElementById(rowId);
     const scrollAmount = row.clientWidth * 0.8; 
     row.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
 }
 
+// initialize lucide icon library
 lucide.createIcons();
 </script>
 

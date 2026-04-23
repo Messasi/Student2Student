@@ -1,28 +1,29 @@
-<?php 
+<?php
+// connect to admin layout and database
 require_once 'admin_layout.php';
+// render the admin header with page title
 renderAdminHeader("Dashboard");
 
-// Database Stats
+// database statistics for general metrics
 $total_users = $conn->query("SELECT COUNT(*) FROM users")->fetch_row()[0];
 $active_listings = $conn->query("SELECT COUNT(*) FROM tickets WHERE status='active'")->fetch_row()[0];
-$sold_tickets = $conn->query("SELECT COUNT(*) FROM orders WHERE status='completed'")->fetch_row()[0];
 
-// Today's Stats
-// --- UPDATED STATS LOGIC ---
-
-// 1. Sold Today: Any ticket purchased today (Held or Completed)
+// updated stats logic to include escrow phases
+// any ticket purchased today (held in escrow or completed)
 $sold_today_query = "SELECT COUNT(*) FROM orders WHERE (status='completed' OR status='held') AND DATE(created_at) = CURDATE()";
 $sold_today = $conn->query($sold_today_query)->fetch_row()[0];
 
-// 2. Disputed Today: Any ticket disputed today
+// count of tickets disputed by buyers today
 $disputed_today_query = "SELECT COUNT(*) FROM orders WHERE status='disputed' AND DATE(created_at) = CURDATE()";
 $disputed_today = $conn->query($disputed_today_query)->fetch_row()[0];
 
-// 3. Update the global Sold Tickets count to include current Escrow
+// global sold tickets count including current escrow
 $sold_tickets = $conn->query("SELECT COUNT(*) FROM orders WHERE status='completed' OR status='held'")->fetch_row()[0];
 
+// fetch ticket counts grouped by category for progress bars
 $cat_stats = $conn->query("SELECT category, COUNT(*) as count FROM tickets WHERE status='active' GROUP BY category");
-// Join with users table to get the seller's username
+
+// fetch the five most recent listings with seller names
 $recent_activity = $conn->query("
     SELECT t.event_name, t.created_at, t.category, u.username 
     FROM tickets t 
@@ -53,6 +54,7 @@ $recent_activity = $conn->query("
         <div class="space-y-6">
             <?php if($cat_stats->num_rows > 0): ?>
                 <?php while($cat = $cat_stats->fetch_assoc()): 
+                    // calculate percentage for visual progress bars
                     $percent = $active_listings > 0 ? ($cat['count'] / $active_listings) * 100 : 0; ?>
                     <div>
                         <div class="flex justify-between text-[10px] font-black uppercase mb-2">
@@ -121,4 +123,7 @@ $recent_activity = $conn->query("
     </div>
 </div>
 
-<?php renderAdminFooter(); ?>
+<?php 
+// render the admin footer
+renderAdminFooter(); 
+?>

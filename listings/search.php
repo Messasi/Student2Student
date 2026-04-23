@@ -1,31 +1,43 @@
 <?php
+// connect to database file
 require_once '../config/database.php';
+// add header file
 include '../includes/header.php';
 
+// fetch query from url and clean whitespace
 $query = isset($_GET['query']) ? trim($_GET['query']) : '';
+// add wildcards for database search
 $search_term = "%$query%";
 
-// 1. SEARCH TICKETS / EVENTS (Using the tickets table)
-// We group by event_name to show unique event cards
+// prepare sql to find matching tickets or events
 $ticket_stmt = $conn->prepare("SELECT event_name, event_location, category, MIN(selling_price) as min_price, COUNT(*) as ticket_count 
                                 FROM tickets 
                                 WHERE (event_name LIKE ? OR event_location LIKE ? OR category LIKE ?) 
                                 AND status = 'active' 
                                 GROUP BY event_name");
+// bind search term to sql placeholders
 $ticket_stmt->bind_param("sss", $search_term, $search_term, $search_term);
+// run ticket search query
 $ticket_stmt->execute();
+// store ticket result set
 $ticket_results = $ticket_stmt->get_result();
 
-// 2. SEARCH PROFILES (Using the users table)
+// prepare sql to find matching usernames
 $user_stmt = $conn->prepare("SELECT id, username, profile_picture, points FROM users WHERE username LIKE ? LIMIT 10");
+// bind search term to username query
 $user_stmt->bind_param("s", $search_term);
+// run profile search query
 $user_stmt->execute();
+// store profile result set
 $user_results = $user_stmt->get_result();
 
-// Helper for Seller Levels
+// function for determining seller level labels
 function getSellerLevel($points) {
+    // check for gold points
     if ($points >= 500) return ['label' => 'Gold', 'color' => '#FFD700'];
+    // check for silver points
     if ($points >= 100) return ['label' => 'Silver', 'color' => '#94A3B8'];
+    // default bronze level
     return ['label' => 'Bronze', 'color' => '#CD7F32'];
 }
 ?>

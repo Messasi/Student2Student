@@ -49,25 +49,51 @@ if ($user_id) {
             while ($row = $res->fetch_assoc()) { $recommended_tickets[] = $row; }
         }
     } else {
-        // sort preferences descending
         arsort($user_prefs);
-        // get top two categories
         $top_categories = array_slice(array_keys($user_prefs), 0, 2); 
-        
-        // loop through favorite categories
-        foreach ($top_categories as $fav_cat) {
-            // prepare query for personalized tickets
-            $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY u.points DESC, t.created_at DESC LIMIT 4");
-            // bind parameters for existing users
-            $stmt->bind_param("ss", $fav_cat, $today);
-            // run query
-            $stmt->execute();
-            // get result set
-            $res = $stmt->get_result();
-            // add rows to recommendations
-            while ($row = $res->fetch_assoc()) { $recommended_tickets[] = $row; }
-        }
+
+        $all_tickets = [];
+
+         //Step 1: get more tickets per category
+            foreach ($top_categories as $fav_cat) {
+                $stmt = $conn->prepare("
+                    SELECT t.*, u.username, u.points, u.profile_picture 
+                    FROM tickets t 
+                    JOIN users u ON t.seller_id = u.id 
+                    WHERE t.category = ? 
+                    AND t.status = 'active' 
+                    AND t.event_date >= ?
+                    ORDER BY t.created_at DESC
+                    LIMIT 10
+                ");
+                $stmt->bind_param("ss", $fav_cat, $today);
+                $stmt->execute();
+                $res = $stmt->get_result();
+
+                while ($row = $res->fetch_assoc()) {
+                    $all_tickets[] = $row;
+                }
+
+            }
+
+    // Step 2: score each ticket
+    foreach ($all_tickets as &$t) {
+        $category_weight = $user_prefs[$t['category']] ?? 0;
+
+        $seller_score = $t['points'] * 0.3;
+
+        $recency_score = strtotime($t['created_at']) / 100000;
+
+        $t['score'] = ($category_weight * 5) + $seller_score + $recency_score;
     }
+    unset($t);
+
+    // Step 3: sort by score
+    usort($all_tickets, fn($a, $b) => $b['score'] <=> $a['score']);
+
+    // Step 4: take top 8
+    $recommended_tickets = array_slice($all_tickets, 0, 8);
+    } 
 }
 
 // function to get tickets by category

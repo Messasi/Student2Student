@@ -1,42 +1,52 @@
 <?php
+// load external library files
 require_once '../vendor/autoload.php';
 
+// use classes for sending emails
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// start user session storage
 session_start();
+// connect to database file
 require_once '../config/database.php';
 
+// check for user id and ticket id
 if (!isset($_SESSION['user_id']) || !isset($_POST['ticket_id'])) {
     header("Location: ../index.php");
     exit();
 }
 
+// store buyer and ticket identifiers
 $buyer_id = $_SESSION['user_id'];
 $ticket_id = (int)$_POST['ticket_id'];
 
-// 1. Fetch ticket details + buyer details
+// prepare sql to fetch ticket and buyer info
 $ticket_query = "SELECT t.*, u.email as buyer_email, u.username as buyer_name 
                  FROM tickets t 
                  JOIN users u ON u.id = ? 
                  WHERE t.id = ? AND t.status = 'active' LIMIT 1";
 $stmt = $conn->prepare($ticket_query);
+// bind buyer and ticket identifiers
 $stmt->bind_param("ii", $buyer_id, $ticket_id);
+// run ticket lookup query
 $stmt->execute();
+// store ticket result array
 $ticket = $stmt->get_result()->fetch_assoc();
 
+// stop if ticket is unavailable
 if (!$ticket) {
     die("Error: Ticket is no longer available or already sold.");
 }
 
-// 2. START DATABASE TRANSACTION
+// open database transaction group
 $conn->begin_transaction();
 
 try {
-    // A. Insert into the 'orders' table (MATCHES NEW SCHEMA)
-    // We add 'held' explicitly to ensure escrow phase starts
+    // prepare sql to create new order
     $order_sql = "INSERT INTO orders (ticket_id, buyer_id, seller_id, event_name, price, status) VALUES (?, ?, ?, ?, ?, 'held')";
     $order_stmt = $conn->prepare($order_sql);
+    // bind order detail parameters
     $order_stmt->bind_param("iiisd", 
         $ticket_id, 
         $buyer_id, 
@@ -44,22 +54,26 @@ try {
         $ticket['event_name'], 
         $ticket['selling_price']
     );
+    // run order insertion
     $order_stmt->execute();
-    $new_order_id = $conn->insert_id; // Get the actual Order ID for the receipt
+    // get unique order id
+    $new_order_id = $conn->insert_id;
 
-    // B. Update ticket status to 'sold' and assign buyer
+    // prepare sql to update ticket status
     $update_sql = "UPDATE tickets SET status = 'sold', buyer_id = ? WHERE id = ?";
     $update_stmt = $conn->prepare($update_sql);
+    // bind buyer and ticket id
     $update_stmt->bind_param("ii", $buyer_id, $ticket_id);
+    // run status update
     $update_stmt->execute();
 
-    // REMOVED: Point rewarding is now handled in the dashboard confirm/auto-complete phase
-
+    // save all database changes
     $conn->commit();
 
-    // 3. SEND EMAIL
+    // setup email library instance
     $mail = new PHPMailer(true);
     try {
+        // configure mail server settings
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
@@ -68,9 +82,11 @@ try {
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 
+        // set sender and recipient
         $mail->setFrom('leonnupa8@gmail.com', 'Student2Student');
         $mail->addAddress($ticket['buyer_email']); 
 
+        // configure email content format
         $mail->isHTML(true);
         $mail->Subject = 'Order Secured: ' . $ticket['event_name'];
         $mail->Body    = "
@@ -81,19 +97,24 @@ try {
                 <p>Your ticket is attached. Access it anytime in your dashboard.</p>
             </div>";
 
+        // check for ticket file path
         $filePath = "../uploads/tickets/" . $ticket['pdf_hash']; 
         if (file_exists($filePath)) {
+            // attach ticket file to email
             $mail->addAttachment($filePath, "Ticket_" . $ticket['event_name'] . ".pdf");
         }
         
+        // run email delivery
         $mail->send();
     } catch (Exception $e) { }
 
 } catch (Exception $e) {
+    // undo database changes on error
     $conn->rollback();
     die("Purchase failed: " . $e->getMessage());
 }
 
+// add header navigation
 include '../includes/header.php';
 ?>
 

@@ -1,37 +1,48 @@
 <?php 
+// check if session exists otherwise start one
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// connect to database file
 require_once '../config/database.php';
 
-// Catch the scraped image from the session
+// retrieve image data from session storage
 $scraped_image = $_SESSION['scraped_ticket']['event_image'] ?? null;
 
+// initialize user variables
 $user_id = $_SESSION['user_id'] ?? null; 
 $username = "Student"; 
 $profile_pic = null;
 
 if ($user_id) {
+    // prepare sql to fetch seller details
     $stmt = $conn->prepare("SELECT username, profile_picture FROM users WHERE id = ? LIMIT 1");
+    // bind user id parameter
     $stmt->bind_param("i", $user_id);
+    // run the query
     $stmt->execute();
+    // store results in array
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
     if ($user) {
+        // assign user details to variables
         $username = $user['username'] ?? "Student";
         $profile_pic = $user['profile_picture'] ?? null;
     }
+    // close database statement
     $stmt->close();
 }
 
+// store form data from previous page
 $event_name = $_POST['event_name'] ?? "Unknown Event";
 $location = $_POST['location'] ?? "Unknown Venue";
 $price = $_POST['selling_price'] ?? "0.00";
 $category = trim($_POST['category'] ?? 'other');
 $event_date = $_POST['event_date'] ?? "";
 
+// include header navigation
 include '../includes/header.php'; 
 ?>
 
@@ -104,7 +115,6 @@ include '../includes/header.php';
                     <input type="hidden" name="category" value="<?php echo htmlspecialchars($category); ?>">
                     <input type="hidden" name="event_date" value="<?php echo htmlspecialchars($event_date); ?>">
                     <input type="hidden" name="retail_price" value="<?php echo htmlspecialchars($_POST['retail_price'] ?? '0.00'); ?>">
-                    
                     <input type="hidden" name="event_image" value="<?php echo htmlspecialchars($scraped_image ?? ''); ?>">
 
                     <button type="submit" class="w-full py-5 bg-[#0052FF] text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:bg-[#0A192F] transition-all shadow-xl">

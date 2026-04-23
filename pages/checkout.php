@@ -1,24 +1,33 @@
 <?php
-// Connect to the database and grab the header
+// connect to database file
 require_once '../config/database.php';
+// add header file
 include '../includes/header.php';
 
-// Get the ticket ID from the URL
+// fetch ticket id from url
 $ticket_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// --- CLICK TRACKER LOGIC ---
+// check user session and ticket id
 if (isset($_SESSION['user_id']) && $ticket_id > 0) {
+    // store user id from session
     $user_id = (int)$_SESSION['user_id'];
 
+    // prepare sql to find ticket group
     $cat_query = $conn->prepare("SELECT category FROM tickets WHERE id = ?");
+    // bind ticket id parameter
     $cat_query->bind_param("i", $ticket_id);
+    // run category lookup
     $cat_query->execute();
+    // fetch result array
     $cat_res = $cat_query->get_result()->fetch_assoc();
 
     if ($cat_res) {
+        // convert category to lowercase
         $category = strtolower($cat_res['category']);
+        // initialize column string
         $column = "";
 
+        // identify target preference column
         if (strpos($category, 'club') !== false) {
             $column = "pref_club_clicks";
         } elseif (strpos($category, 'sport') !== false) {
@@ -29,15 +38,19 @@ if (isset($_SESSION['user_id']) && $ticket_id > 0) {
             $column = "pref_gig_clicks";
         }
 
+        // update click count if column found
         if (!empty($column)) {
+            // prepare sql to increment click count
             $update = $conn->prepare("UPDATE users SET $column = $column + 1 WHERE id = ?");
+            // bind user id parameter
             $update->bind_param("i", $user_id);
+            // run preference update
             $update->execute();
         }
     }
 }
 
-// Fetch ticket and seller details including points
+// prepare sql to fetch listing and seller details
 $query = "SELECT t.*, u.username, u.profile_picture, u.points 
           FROM tickets t 
           JOIN users u ON t.seller_id = u.id 
@@ -45,32 +58,44 @@ $query = "SELECT t.*, u.username, u.profile_picture, u.points
           LIMIT 1";
 
 $stmt = $conn->prepare($query);
+// bind ticket id for details
 $stmt->bind_param("i", $ticket_id);
+// run details query
 $stmt->execute();
+// fetch details result array
 $result = $stmt->get_result();
 $ticket = $result->fetch_assoc();
 
+// redirect if listing is unavailable
 if (!$ticket) {
     echo "<script>alert('Ticket not found or no longer available.'); window.location.href='index.php';</script>";
     exit;
 }
 
-// Determine Points Bracket
+// calculate points variable
 $pts = $ticket['points'] ?? 0;
+// check for gold rank
 if ($pts >= 500) {
     $bracket_text = "Gold Seller";
     $bracket_css = "text-yellow-600";
-} elseif ($pts >= 100) {
+} 
+// check for silver rank
+elseif ($pts >= 100) {
     $bracket_text = "Silver Seller";
     $bracket_css = "text-slate-500";
-} elseif ($pts >= 10) {
+} 
+// check for bronze rank
+elseif ($pts >= 10) {
     $bracket_text = "Bronze Seller";
     $bracket_css = "text-orange-600";
-} else {
+} 
+// set default new rank
+else {
     $bracket_text = "New Seller";
     $bracket_css = "text-blue-500";
 }
 
+// format price and processing fee
 $price = (float)$ticket['selling_price'];
 $fee = 1.50;
 $total = number_format($price + $fee, 2);

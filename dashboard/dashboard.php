@@ -1,57 +1,84 @@
 <?php
+
 session_start();
+// link to the database connection file
 require_once '../config/database.php';
 
+// check if the user is logged in otherwise redirect to the login page
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../auth/login.php");
     exit();
 }
 
+// store the current user id for database queries
 $user_id = $_SESSION['user_id'];
 
-// --- 1. HANDLE ESCROW ACTIONS ---
+
+// check if the user has clicked a button to confirm a ticket or raise a dispute
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['action'])) {
     $oid = (int)$_POST['order_id'];
+    
+    // handle the buyer confirming they received and used the ticket
     if ($_POST['action'] === 'confirm') {
+        // start a transaction to ensure both the order update and point reward happen together
         $conn->begin_transaction();
         try {
+            // change the order status to completed so funds are released
             $conn->query("UPDATE orders SET status = 'completed' WHERE id = $oid AND buyer_id = $user_id AND status = 'held'");
+            // find the seller id to reward them for a successful transaction
             $s_res = $conn->query("SELECT seller_id FROM orders WHERE id = $oid");
             if ($s_res->num_rows > 0) {
                 $sid = $s_res->fetch_assoc()['seller_id'];
+                // add 20 points to the seller profile for being reliable
                 $conn->query("UPDATE users SET points = points + 20 WHERE id = $sid");
             }
+            // save all changes to the database
             $conn->commit();
             header("Location: dashboard.php?msg=confirmed");
-        } catch (Exception $e) { $conn->rollback(); }
+        } catch (Exception $e) { 
+            // undo any changes if an error occurred during the process
+            $conn->rollback(); 
+        }
     } 
+    // handle the buyer reporting a problem with the ticket
     elseif ($_POST['action'] === 'dispute') {
         $conn->begin_transaction();
         try {
             $s_res = $conn->query("SELECT seller_id FROM orders WHERE id = $oid");
             if ($s_res->num_rows > 0) {
                 $sid = $s_res->fetch_assoc()['seller_id'];
+                // mark the order as disputed for administrator review
                 $conn->query("UPDATE orders SET status = 'disputed' WHERE id = $oid AND buyer_id = $user_id");
+                // penalise the seller by removing 50 points from their profile
                 $conn->query("UPDATE users SET points = points - 50 WHERE id = $sid");
             }
             $conn->commit();
             header("Location: dashboard.php?msg=disputed");  
-        } catch (Exception $e) { $conn->rollback(); }
+        } catch (Exception $e) { 
+            $conn->rollback(); 
+        }
     }
     exit();
 }
 
-// --- 2. FINANCIAL CALCULATIONS ---
+// sum up all money earned from successfully completed sales
 $total_earnings = $conn->query("SELECT SUM(price) as total FROM orders WHERE seller_id = $user_id AND status = 'completed'")->fetch_assoc()['total'] ?? 0.00;
+// calculate the total value of tickets currently listed for sale
 $listings_val = $conn->query("SELECT SUM(selling_price) as total FROM tickets WHERE seller_id = $user_id AND status = 'active'")->fetch_assoc()['total'] ?? 0.00;
+// sum up money currently locked in the escrow system awaiting buyer confirmation
 $held_funds = $conn->query("SELECT SUM(price) as total FROM orders WHERE seller_id = $user_id AND status = 'held'")->fetch_assoc()['total'] ?? 0.00;
+// total potential income currently in progress
 $pending_total = $listings_val + $held_funds;
 
-// --- 3. DATA FETCHING ---
+
+// retrieve all tickets the user has sold to others
 $sold_tickets = $conn->query("SELECT o.*, u.username as buyer_name FROM orders o JOIN users u ON o.buyer_id = u.id WHERE o.seller_id = $user_id ORDER BY o.created_at DESC");
+// retrieve all tickets the user currently has listed on the marketplace
 $active_listings = $conn->query("SELECT * FROM tickets WHERE seller_id = $user_id AND status = 'active' ORDER BY created_at DESC");
+// retrieve all tickets the user has purchased from other students
 $purchase_history = $conn->query("SELECT o.*, u.username as seller_name FROM orders o JOIN users u ON o.seller_id = u.id WHERE o.buyer_id = $user_id ORDER BY o.created_at DESC");
 
+// insert the site header
 include '../includes/header.php';
 ?>
 
@@ -186,10 +213,16 @@ include '../includes/header.php';
 </div>
 
 <script>
+
 function removeListing(id) { 
     if(confirm('Remove this listing?')) {
+        // redirect to the server side removal script
         window.location.href = '../actions/remove_listing.php?id=' + id; 
     }
 }
 </script>
-<?php include '../includes/footer.php'; ?>
+
+<?php 
+// insert the site footer
+include '../includes/footer.php'; 
+?>

@@ -1,7 +1,9 @@
 <?php
+// initialise the session if one has not already been started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+// create a unique class for the body tag based on the current file name
 $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
 ?>
 <!DOCTYPE html>
@@ -11,10 +13,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Student2Student</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://unpkg.com/lucide@latest"></script>
-
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/student2student/assests/css/style.css">
 </head>
@@ -36,7 +35,6 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
             <ul class="hidden lg:flex items-center justify-center gap-2 m-0 p-0 list-none">
                 <li><a href="/student2student/index.php" class="nav-link nav-discovery">Discovery</a></li>
                 <li><a href="/student2student/listings/ticket_listing.php" class="nav-link nav-create">Sell Tickets</a></li>
-                
                 <li><a href="/student2student/pages/events.php" class="nav-link nav-about">Events</a></li>
             </ul>
 
@@ -52,7 +50,7 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                 </div>
 
                 <div class="flex items-center gap-4">
-                    <?php if (isset($_SESSION['user_id'])): ?> <!--allow login for testing purposes-->
+                    <?php if (isset($_SESSION['user_id'])): ?> 
                         <div class="relative inline-block text-left">
                             <button id="user-menu-button" class="w-10 h-10 rounded-full bg-[#0052FF]/10 flex items-center justify-center text-[#0052FF] border border-[#0052FF]/20 hover:bg-[#0052FF]/20 transition-all focus:outline-none">
                                 <i data-lucide="user" class="w-5 h-5"></i>
@@ -73,7 +71,6 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                                             <i data-lucide="shield-check" class="w-4 h-4"></i>
                                             Admin Panel
                                         </a>
-                                        
                                         <hr class="border-[#E2E8F0] my-1">
                                     <?php endif; ?>
                                     <a href="/student2student/dashboard/settings.php" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-[#0A192F] hover:bg-[#F8FAFC] transition-colors no-underline">
@@ -95,12 +92,11 @@ $page_class = "page-" . basename($_SERVER['PHP_SELF'], ".php");
                         </div>
                     <?php endif; ?>
 
-                        <button id="open-menu-btn"type="button" class="lg:hidden text-[#0A192F] hover:text-[#0052FF] transition-colors bg-transparent border-none p-1">
-                            <i data-lucide="menu" class="w-8 h-8"></i>
-                        </button>
+                    <button id="open-menu-btn" type="button" class="lg:hidden text-[#0A192F] hover:text-[#0052FF] transition-colors bg-transparent border-none p-1">
+                        <i data-lucide="menu" class="w-8 h-8"></i>
+                    </button>
                 </div>
             </div>
         </nav>
     </header>
     <main class="flex-grow w-full font-['Inter']">
-  

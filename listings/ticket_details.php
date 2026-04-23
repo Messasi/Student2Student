@@ -1,46 +1,49 @@
 <?php 
+// initialise user session data
 session_start();
 
+// link database and library files
 require_once '../config/database.php';
 
+// check if scraped ticket data exists in session otherwise redirect
 if (empty($_SESSION['scraped_ticket'])) {
     header("Location: ticket_listing.php");
     exit();
 }
 
+// store scraped session data in local variable
 $scraped = $_SESSION['scraped_ticket'];
 
-// We check if the ticket was automatically verified by our Fatsoma scraper.
+// check for verification status from fatsoma scraper
 $isVerified = ($scraped['is_verified'] === true);
 
-// If the ticket is verified, we make the input fields read-only so the info cannot be faked.
+// set read-only attribute for verified tickets to prevent data tampering
 $readonlyAttr = $isVerified
     ? "readonly style='background-color: #F1F5F9; cursor: not-allowed;'"
     : "";
 
-// We pull the event info out of the session and set defaults if anything is missing.
+// assign event details from session with fallbacks for manual entry
 $event_name   = $scraped['event_name']   ?? '';
 $location     = $scraped['venue']        ?? '';
 $event_date   = $scraped['event_date']   ?? '';
 $retail_price = (float)($scraped['retail_price'] ?? 0);
 $manual_msg   = $scraped['manual_msg']   ?? '';
-$category = $scraped['category'] ?? '';
-// Pull the scraped image URL to pass it to the next page
-$event_image = $scraped['event_image'] ?? '';
+$category     = $scraped['category']     ?? '';
+$event_image  = $scraped['event_image']    ?? '';
 
-// This is where we set the rules for the selling price to stop people overcharging.
-// Students can sell for a small profit (40% max) or a big discount (50% min).
+// calculate price cap policy limits (50% floor and 140% ceiling)
 if ($retail_price > 0) {
     $max_allowed = round($retail_price * 1.40, 2);
     $min_allowed = round($retail_price * 0.50, 2);
     $default_val = $retail_price;
 } else {
-    // If the ticket was originally free, it has to stay free on our platform too.
+    // force zero price for tickets scraped as free
     $max_allowed = 0.00;
     $min_allowed = 0.00;
     $default_val = 0.00;
 }
 
+// insert header navigation
 include '../includes/header.php'; 
 ?>
 
@@ -153,23 +156,30 @@ include '../includes/header.php';
 </div>
 
 <script>
+    // initialize icon library
     lucide.createIcons();
 
+    // DOM references for live validation
     const retailInput = document.getElementById('retail_price');
     const sellingInput = document.getElementById('selling_price');
     const statusText = document.getElementById('price-status');
     const form = document.getElementById('listingForm');
 
+    // state variables for limits
     let maxLimit = <?php echo $max_allowed; ?>;
     let minLimit = <?php echo $min_allowed; ?>;
     const isVerified = <?php echo $isVerified ? 'true' : 'false'; ?>;
 
+    /**
+     * Real-time calculation of price bounds and error messaging
+     */
     function validatePrices() {
         if (sellingInput.hasAttribute('readonly')) return;
 
         const retailVal = parseFloat(retailInput.value) || 0;
         const sellingVal = parseFloat(sellingInput.value) || 0;
 
+        // dynamic limit calculation for manual entries
         if (!isVerified) {
             maxLimit = retailVal > 0 ? (retailVal * 1.40) : 9999;
             minLimit = retailVal > 0 ? (retailVal * 0.50) : 0;
@@ -181,6 +191,7 @@ include '../includes/header.php';
             }
         }
 
+        // visual error handling for policy violations
         if (retailVal > 0 && (sellingVal > maxLimit || sellingVal < minLimit)) {
             const errorMsg = sellingVal > maxLimit ? "ABOVE 40% CAP" : "BELOW 50% FLOOR";
             statusText.innerText = " BLOCKED: " + errorMsg;
@@ -193,6 +204,9 @@ include '../includes/header.php';
         }
     }
 
+    /**
+     * Final submission blocker for price integrity
+     */
     form.onsubmit = function(e) {
         const retailVal = parseFloat(retailInput.value) || 0;
         const sellingVal = parseFloat(sellingInput.value) || 0;
@@ -204,8 +218,12 @@ include '../includes/header.php';
         }
     };
 
+    // attach input listeners
     retailInput.addEventListener('input', validatePrices);
     sellingInput.addEventListener('input', validatePrices);
 </script>
 
-<?php include '../includes/footer.php'; ?>
+<?php 
+// insert footer navigation
+include '../includes/footer.php'; 
+?>

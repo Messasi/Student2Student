@@ -1,14 +1,15 @@
 <?php 
+// connect to database file
 require_once '../config/database.php';
+// add header file
 include '../includes/header.php'; 
 
-// 1. CATCH THE EVENT NAME FROM THE URL
-// This matches the link: view_event_tickets.php?event=Networking+Dinner+2026
+// fetch event name from url parameter
 $event_name = isset($_GET['event']) ? $_GET['event'] : '';
 
-// 2. HANDLE SORTING LOGIC
+// sorting logic based on url parameter
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'price_low';
-$orderBy = "t.selling_price ASC"; // Default
+$orderBy = "t.selling_price ASC";
 
 switch ($sort) {
     case 'recent':
@@ -19,8 +20,7 @@ switch ($sort) {
         break;
 }
 
-// 3. FETCH REAL DATA FROM DATABASE
-// We JOIN the users table to get the profile picture and points for the badge
+// prepare sql to fetch ticket and seller data
 $query = "SELECT t.*, u.username, u.profile_picture, u.points 
           FROM tickets t 
           JOIN users u ON t.seller_id = u.id 
@@ -28,21 +28,30 @@ $query = "SELECT t.*, u.username, u.profile_picture, u.points
           ORDER BY $orderBy";
 
 $stmt = $conn->prepare($query);
+// bind event name parameter
 $stmt->bind_param("s", $event_name);
+// run the query
 $stmt->execute();
+// store results
 $result = $stmt->get_result();
 
-// Get Metadata for the Hero Card (Location/Date/Category) from the first available ticket
+// prepare sql to fetch event metadata
 $meta_query = "SELECT event_location, event_date, category FROM tickets WHERE event_name = ? LIMIT 1";
 $m_stmt = $conn->prepare($meta_query);
+// bind event name for metadata
 $m_stmt->bind_param("s", $event_name);
+// run metadata query
 $m_stmt->execute();
+// fetch result array
 $meta = $m_stmt->get_result()->fetch_assoc();
 
-// 4. HELPER FOR SELLER LEVELS
+// function for seller level calculation
 function getSellerLevel($points) {
+    // check for gold status
     if ($points >= 500) return ['label' => 'Gold Seller', 'color' => '#FFD700', 'bg' => 'bg-yellow-400/10'];
+    // check for silver status
     if ($points >= 100) return ['label' => 'Silver Seller', 'color' => '#94A3B8', 'bg' => 'bg-slate-400/10'];
+    // default bronze status
     return ['label' => 'Bronze Seller', 'color' => '#CD7F32', 'bg' => 'bg-orange-400/10'];
 }
 ?>

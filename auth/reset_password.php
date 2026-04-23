@@ -1,51 +1,73 @@
 <?php
+// connect to database file
 require_once '../config/database.php';
+// add header file
 include '../includes/header.php';
 
+// fetch security token from url
 $token = $_GET['token'] ?? '';
+// initialize empty error string
 $error = '';
+// set success status to false
 $success = false;
 
-// 1. Validate the token immediately
+// check if security token exists
 if (empty($token)) {
     $error = "Invalid or missing security token.";
 } else {
+    // prepare sql to check for valid non expired token
     $stmt = $conn->prepare("SELECT email FROM password_resets WHERE token = ? AND expiry > NOW() LIMIT 1");
+    // bind token parameter
     $stmt->bind_param("s", $token);
+    // run token validation query
     $stmt->execute();
+    // fetch reset result set
     $result = $stmt->get_result();
     $reset_request = $result->fetch_assoc();
 
+    // check if reset request was found
     if (!$reset_request) {
         $error = "This link has expired or is invalid. Please request a new one.";
     }
 }
 
-// 2. Process the password update
+// process form when user submits new password
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$error) {
+    // store password inputs
     $new_password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
+    // check password length
     if (strlen($new_password) < 8) {
         $error = "Password must be at least 8 characters long.";
-    } elseif ($new_password !== $confirm_password) {
+    } 
+    // check if both passwords match
+    elseif ($new_password !== $confirm_password) {
         $error = "Passwords do not match.";
     } else {
+        // fetch user email from reset record
         $email = $reset_request['email'];
+        // create secure password hash
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-        // Update the user's password
+        // prepare sql to update user record
         $update_stmt = $conn->prepare("UPDATE users SET password_hash = ? WHERE email = ?");
+        // bind hash and email
         $update_stmt->bind_param("ss", $hashed_password, $email);
         
+        // run update query
         if ($update_stmt->execute()) {
-            // Delete the token so it cannot be used again
+            // prepare sql to remove used token
             $delete_stmt = $conn->prepare("DELETE FROM password_resets WHERE email = ?");
+            // bind email for deletion
             $delete_stmt->bind_param("s", $email);
+            // run deletion query
             $delete_stmt->execute();
             
+            // set success status to true
             $success = true;
         } else {
+            // handle database errors
             $error = "An error occurred. Please try again later.";
         }
     }

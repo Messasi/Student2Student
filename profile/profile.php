@@ -1,60 +1,80 @@
 <?php
-// Connect to the database and grab the header file
+// connect to database file
 require_once '../config/database.php';
+// add header file
 include '../includes/header.php';
 
-// Get the user ID from the URL link or use the logged-in session ID
-// 1. Check if an ID is provided in the URL (e.g., profile.php?id=11)
+// check for profile id in url
 if (isset($_GET['id'])) {
     $profile_id = (int)$_GET['id'];
 } 
-// 2. If no ID in URL, check if the user is logged in to show THEIR OWN profile
+// fallback to session user id
 elseif (isset($_SESSION['user_id'])) {
     $profile_id = $_SESSION['user_id'];
 } 
-// 3. If neither, send them back to index
+// redirect if no id found
 else {
     header("Location: ../index.php");
     exit();
 }
 
-// Get the specific user details like name and points from the database
+// prepare sql to fetch user details
 $stmt = $conn->prepare("SELECT username, profile_picture, created_at, points FROM users WHERE id = ?");
+// bind id parameter
 $stmt->bind_param("i", $profile_id);
+// run the query
 $stmt->execute();
+// fetch result array
 $user = $stmt->get_result()->fetch_assoc();
+// close the statement
 $stmt->close();
 
-// Stop the script and show an error if the user does not exist
+// redirect if user does not exist
 if (!$user) {
     echo "<script>alert('User not found'); window.location.href='../index.php';</script>";
     exit;
 }
 
+// calculate points variable
 $points = $user['points'] ?? 0;
 
+// determine gold badge rank
 if ($points >= 500) {
     $badge_label = "Gold Seller";
     $badge_color = "bg-yellow-100 text-yellow-700 border-yellow-200";
-} elseif ($points >= 100) {
+} 
+// determine silver badge rank
+elseif ($points >= 100) {
     $badge_label = "Silver Seller";
     $badge_color = "bg-slate-100 text-slate-700 border-slate-200";
-} elseif ($points >= 10) {
+} 
+// determine bronze badge rank
+elseif ($points >= 10) {
     $badge_label = "Bronze Seller";
     $badge_color = "bg-orange-100 text-orange-700 border-orange-200";
-} else {
+} 
+// set default new rank
+else {
     $badge_label = "New Seller";
     $badge_color = "bg-blue-100 text-blue-700 border-blue-200";
 }
 
+// count sold tickets from database
 $sold_stmt = $conn->prepare("SELECT COUNT(*) as total FROM tickets WHERE seller_id = ? AND status = 'sold'");
+// bind profile id to count
 $sold_stmt->bind_param("i", $profile_id);
+// run count query
 $sold_stmt->execute();
+// store total sales number
 $sold_count = $sold_stmt->get_result()->fetch_assoc()['total'];
 
+// fetch current active listings for user
 $listings_stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.seller_id = ? AND t.status = 'active' AND t.event_date >= NOW() ORDER BY t.created_at DESC");
+// bind profile id to listings
 $listings_stmt->bind_param("i", $profile_id);
+// run listings query
 $listings_stmt->execute();
+// store active results
 $active_listings = $listings_stmt->get_result();
 ?>
 
@@ -142,12 +162,14 @@ $active_listings = $listings_stmt->get_result();
 </div>
 
 <script>
+// function for sliding listing row content
 function scrollRow(rowId, direction) {
     const row = document.getElementById(rowId);
     const scrollAmount = row.clientWidth * 0.8; 
     row.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
 }
 
+// initialization for icons
 document.addEventListener('DOMContentLoaded', function () {
     lucide.createIcons();
 });
