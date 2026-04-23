@@ -1,19 +1,29 @@
 <?php
+// connect to database file
 require_once 'config/database.php';
+// add header file
 include 'includes/header.php';
 
+// current date and time variable
 $today = date('Y-m-d H:i:s');
+// retrieve session user id
 $user_id = $_SESSION['user_id'] ?? null;
+// empty array for suggestions
 $recommended_tickets = [];
+// standard category list
 $default_cats = ['Club Night', 'Society', 'Sports', 'Academic and Careers', 'Other'];
 
 if ($user_id) {
-    // 1. Fetch user data
+    // prepare sql to find user data
     $user_stmt = $conn->prepare("SELECT points, pref_club_clicks, pref_sports_clicks, pref_society_clicks, pref_gig_clicks FROM users WHERE id = ?");
+    // bind user id to query
     $user_stmt->bind_param("i", $user_id);
+    // run the query
     $user_stmt->execute();
+    // fetch results into array
     $u_prof = $user_stmt->get_result()->fetch_assoc();
 
+    // map database columns to categories
     $user_prefs = [
         'Club Night' => (int)$u_prof['pref_club_clicks'],
         'Sports' => (int)$u_prof['pref_sports_clicks'],
@@ -21,45 +31,68 @@ if ($user_id) {
         'Academic and Careers' => (int)$u_prof['pref_gig_clicks']
     ];
 
+    // calculate total interactions
     $total_clicks = array_sum($user_prefs);
 
-    // --- LOGIC FOR "RECOMMENDED FOR YOU" ROW ---
     if ($total_clicks == 0) {
-        // CASE: NEW USER (Cold Start) - Show broad mix of newest tickets
+        // loop through categories for new users
         foreach (['Club Night', 'Society', 'Sports'] as $c) {
+            // prepare query for newest tickets
             $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 2");
+            // bind parameters for new users
             $stmt->bind_param("ss", $c, $today);
+            // run query
             $stmt->execute();
+            // get result set
             $res = $stmt->get_result();
+            // add rows to recommendations
             while ($row = $res->fetch_assoc()) { $recommended_tickets[] = $row; }
         }
     } else {
-        // CASE: EXISTING USER - Show Top 2 Favourite Categories + Priority Sellers
+        // sort preferences descending
         arsort($user_prefs);
+        // get top two categories
         $top_categories = array_slice(array_keys($user_prefs), 0, 2); 
         
+        // loop through favorite categories
         foreach ($top_categories as $fav_cat) {
+            // prepare query for personalized tickets
             $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY u.points DESC, t.created_at DESC LIMIT 4");
+            // bind parameters for existing users
             $stmt->bind_param("ss", $fav_cat, $today);
+            // run query
             $stmt->execute();
+            // get result set
             $res = $stmt->get_result();
+            // add rows to recommendations
             while ($row = $res->fetch_assoc()) { $recommended_tickets[] = $row; }
         }
     }
 }
 
+// function to get tickets by category
 function getCategoryTickets($conn, $cat_name) {
+    // timestamp for current time
     $now = date('Y-m-d H:i:s');
+    // prepare query for category listings
     $stmt = $conn->prepare("SELECT t.*, u.username, u.points, u.profile_picture FROM tickets t JOIN users u ON t.seller_id = u.id WHERE t.category = ? AND t.status = 'active' AND t.event_date >= ? ORDER BY t.created_at DESC LIMIT 20");
+    // bind category and time
     $stmt->bind_param("ss", $cat_name, $now);
+    // run query
     $stmt->execute();
+    // return findings
     return $stmt->get_result();
 }
 
+// function for seller ranking
 function getTierLabel($pts) {
+    // check for gold rank
     if ($pts >= 500) return ['text' => 'Gold', 'css' => 'text-yellow-600'];
+    // check for silver rank
     if ($pts >= 100) return ['text' => 'Silver', 'css' => 'text-slate-500'];
+    // check for bronze rank
     if ($pts >= 10) return ['text' => 'Bronze', 'css' => 'text-orange-600'];
+    // default rank
     return ['text' => 'New', 'css' => 'text-blue-500'];
 }
 ?>
@@ -137,6 +170,7 @@ function getTierLabel($pts) {
         <div class="space-y-24">
             <?php foreach ($default_cats as $c_title):
                 $tickets = getCategoryTickets($conn, $c_title);
+                // check for category availability
                 if ($tickets && $tickets->num_rows > 0): 
                     $row_id = 'row-' . strtolower(str_replace(' ', '-', $c_title));
             ?>
@@ -191,11 +225,16 @@ function getTierLabel($pts) {
 </div>
 
 <script>
+// function that slides row content
 function scrollRow(rowId, direction) {
+    // get row element by id
     const row = document.getElementById(rowId);
+    // calculate horizontal scroll distance
     const scrollAmount = row.clientWidth * 0.8; 
+    // animate horizontal scroll
     row.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
 }
+// lucide icon init function
 document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
 </script>
 
