@@ -34,8 +34,8 @@ $all_listings = $conn->query("SELECT t.*, u.username FROM tickets t JOIN users u
                 <td class="p-6 text-xs font-bold text-[#0A192F]">@<?= htmlspecialchars($t['username']) ?></td>
                 <td class="p-6 font-black text-[#0052FF]">£<?= number_format($t['selling_price'], 2) ?></td>
                 <td class="p-6">
-                    <span class="px-2 py-1 rounded text-[8px] font-black uppercase border 
-                        <?= $t['status'] === 'active' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-red-50 text-red-600 border-red-100' ?>">
+                    <span class="px-2 py-1 rounded text-[12px] font-black uppercase 
+                        <?= $t['status'] === 'active' ? ' text-green-600 ' : 'text-red-600 ' ?>">
                         <?= $t['status'] ?>
                     </span>
                 </td>
