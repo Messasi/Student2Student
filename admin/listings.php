@@ -1,7 +1,7 @@
 <?php 
 require_once 'admin_layout.php';
 
-// Action: Delete Listing
+// Delete Listing
 if (isset($_GET['delete_id'])) {
     $tid = (int)$_GET['delete_id'];
     $conn->query("DELETE FROM tickets WHERE id = $tid");

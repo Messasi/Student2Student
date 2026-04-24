@@ -2,7 +2,7 @@
 // Database configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
-define('DB_PASS', ''); // Leave empty for XAMPP/MAMP default
+define('DB_PASS', ''); // 
 define('DB_NAME', 'student2student_db');
 
 // Create connection
@@ -13,6 +13,6 @@ if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-// Set charset to UTF-8
+#
 mysqli_set_charset($conn, "utf8mb4");
 ?>

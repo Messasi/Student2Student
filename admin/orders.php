@@ -49,11 +49,11 @@ $orders = $conn->query($orders_query);
                             $status = $o['status'] ?? 'held'; 
                             
                             if ($status === 'held') {
-                                echo '<span class="px-2 py-1 rounded text-[8px] font-black uppercase border bg-blue-50 text-blue-600 border-blue-100 italic">Pending in Escrow</span>';
+                                echo '<span class="px-2 py-1 rounded text-[12px] font-black uppercase  text-blue-600 border-blue-100 ">Pending in Escrow</span>';
                             } elseif ($status === 'completed') {
-                                echo '<span class="px-2 py-1 rounded text-[8px] font-black uppercase border bg-green-50 text-green-600 border-green-100">Sold</span>';
+                                echo '<span class="px-2 py-1 rounded text-[12px] font-black uppercase  text-green-600 border-green-100">Sold</span>';
                             } elseif ($status === 'disputed') {
-                                echo '<span class="px-2 py-1 rounded text-[8px] font-black uppercase border bg-red-50 text-red-600 border-red-100">Disputed</span>';
+                                echo '<span class="px-2 py-1 rounded text-[12px] font-black uppercase  text-red-600 border-red-100">Disputed</span>';
                             }
                             ?>
                         </td>
