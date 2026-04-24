@@ -91,17 +91,29 @@ try {
         $mail->Subject = 'Order Secured: ' . $ticket['event_name'];
         $mail->Body    = "
             <div style='font-family: sans-serif; color: #0A192F;'>
-                <h1 style='color: #0052FF;'>Payment Secured!</h1>
+                <h1 style='color: black'>Payment Secured!</h1>
                 <p>Hi " . htmlspecialchars($ticket['buyer_name']) . ",</p>
-                <p>Your payment for <b>" . htmlspecialchars($ticket['event_name']) . "</b> is held in escrow.</p>
-                <p>Your ticket is attached. Access it anytime in your dashboard.</p>
+                <p>Your payment for <b>" . htmlspecialchars($ticket['event_name']) . "</b> has been successfully processed. Your order number is <b>#". str_pad($new_order_id, 6, '0', STR_PAD_LEFT) ."</b>.</p>
+                <p>Your ticket is attached.</p>
             </div>";
 
+        
         // check for ticket file path
-        $filePath = "../uploads/tickets/" . $ticket['pdf_hash']; 
+        $hash = $ticket['pdf_hash'];
+        
+        // Ensure the filename ends with .pdf
+        if (substr($hash, -4) !== '.pdf') {
+            $hash .= '.pdf';
+        }
+        
+        $filePath = "../uploads/tickets/" . $hash; 
+        
         if (file_exists($filePath)) {
             // attach ticket file to email
             $mail->addAttachment($filePath, "Ticket_" . $ticket['event_name'] . ".pdf");
+        } else {
+            // Optional: Log an error to your PHP error log so you can track missing files
+            error_log("Failed to attach ticket. File not found at: " . $filePath);
         }
         
         // run email delivery
